@@ -1,0 +1,60 @@
+<!-- القائمة الجانبية -->
+<div id="sideMenu" class="side-menu">
+    <span class="close-menu" onclick="toggleMenu()">&times;</span>
+    <a href="/sales">💻 الكاشير</a>
+    <a href="/products">📦 إدارة المنتجات</a>
+    <a href="/expenses">💸 المصروفات اليومية</a>
+    <a href="/purchases">🛒 المشتريات والمخزن</a>
+    <a href="/reports">📊 التقارير الشاملة</a>
+    <a href="/partners">🤝 حسابات الشركاء</a>
+    
+    {% if session.get('role') == 'owner' %}
+    <a href="/super_admin" style="background-color: rgba(243, 156, 18, 0.1); color: #f39c12; font-weight: bold; border-right: 4px solid #f39c12;">
+        👑 لوحة تحكم المنصة
+    </a>
+    {% endif %}
+    
+    <a href="/settings">⚙️ الإعدادات</a>
+    <a href="/contact">📞 الدعم الفني والتواصل</a>
+    <a href="/logout" style="color: #e74c3c;">🚪 تسجيل الخروج</a>
+</div>
+
+<!-- طبقة التعتيم الخلفية عند فتح القائمة -->
+<div id="menuOverlay" class="menu-overlay" onclick="toggleMenu()"></div>
+
+<style>
+    .side-menu { 
+        position: fixed; 
+        top: 0; 
+        right: -280px; 
+        width: 260px; 
+        height: 100%; 
+        background-color: #2c3e50; 
+        color: white; 
+        transition: 0.4s ease; 
+        z-index: 2000; 
+        padding-top: 60px; 
+        padding-bottom: 40px; /* مساحة أمان أسفل القائمة لمنع قص آخر عنصر */
+        box-shadow: -2px 0 15px rgba(0,0,0,0.3); 
+        overflow-y: auto; /* الخاصية المسؤولة عن التمرير لفوق ولتحت بكل سلاسة */
+        -webkit-overflow-scrolling: touch; 
+    }
+    .side-menu.active { right: 0; }
+    .side-menu a { padding: 14px 22px; text-decoration: none; font-size: 15px; color: #ecf0f1; display: block; transition: 0.2s; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .side-menu a:hover { background-color: rgba(255,255,255,0.1); padding-right: 30px; }
+    .close-menu { position: absolute; top: 15px; left: 20px; font-size: 26px; cursor: pointer; color: white; line-height: 1; }
+    .close-menu:hover { color: #e74c3c; }
+    .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1500; display: none; opacity: 0; transition: 0.4s; }
+    .menu-overlay.active { display: block; opacity: 1; }
+</style>
+
+<script>
+    // دالة فتح وإغلاق القائمة الجانبية وطبقة التعتيم في نفس الوقت
+    function toggleMenu() {
+        var menu = document.getElementById("sideMenu");
+        var overlay = document.getElementById("menuOverlay");
+        
+        if (menu) menu.classList.toggle("active");
+        if (overlay) overlay.classList.toggle("active");
+    }
+</script>

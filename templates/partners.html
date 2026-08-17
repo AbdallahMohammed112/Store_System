@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حسابات الشركاء - نظام المتجر</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #8e44ad;
+            --secondary-color: #34495e;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --bg-color: #eef2f5;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+        }
+
+        body { font-family: 'Cairo', sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; color: var(--text-color); box-sizing: border-box; }
+        *, *:before, *:after { box-sizing: inherit; }
+
+        .top-navbar { background-color: var(--card-bg); padding: 12px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        .nav-right { display: flex; align-items: center; gap: 12px; }
+        .menu-btn { font-size: 22px; background: none; border: none; cursor: pointer; color: var(--secondary-color); padding: 5px; line-height: 1; }
+        .top-navbar h1 { margin: 0; font-size: 18px; color: var(--secondary-color); font-weight: 700; }
+        .user-info { display: flex; align-items: center; font-size: 13px; color: #555; }
+        
+        .side-menu { position: fixed; top: 0; right: -280px; width: 260px; height: 100%; background-color: var(--secondary-color); color: white; transition: 0.4s ease; z-index: 2000; padding-top: 60px; box-shadow: -2px 0 15px rgba(0,0,0,0.3); }
+        .side-menu.active { right: 0; }
+        .side-menu a { padding: 14px 22px; text-decoration: none; font-size: 15px; color: #ecf0f1; display: block; transition: 0.2s; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .side-menu a:hover { background-color: rgba(255,255,255,0.1); padding-right: 30px; }
+        .close-menu { position: absolute; top: 15px; left: 20px; font-size: 26px; cursor: pointer; color: white; line-height: 1; }
+        .close-menu:hover { color: var(--danger-color); }
+        .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1500; display: none; opacity: 0; transition: 0.4s; }
+        .menu-overlay.active { display: block; opacity: 1; }
+        
+        .main-container { padding: 15px; max-width: 1200px; margin: auto; }
+        .card { background-color: var(--card-bg); padding: 18px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); margin-bottom: 15px; border-top: 4px solid var(--primary-color); }
+        .search-card { border-top-color: var(--secondary-color); }
+        .section-title { font-size: 15px; font-weight: bold; color: var(--secondary-color); margin-bottom: 12px; border-bottom: 2px solid #f0f0f0; padding-bottom: 8px; }
+        
+        .form-row { display: flex; gap: 12px; margin-bottom: 12px; align-items: flex-end; flex-wrap: wrap; }
+        .form-group { flex: 1; min-width: 140px; display: flex; flex-direction: column; }
+        .form-group label { margin-bottom: 5px; font-size: 12px; font-weight: 600; color: #555; }
+        .form-group input { padding: 9px; border: 1px solid #dcdde1; border-radius: 6px; font-size: 13px; width: 100%; font-family: 'Cairo'; }
+        .form-group input:focus { outline: none; border-color: var(--primary-color); }
+        
+        .btn { padding: 9px 16px; border: none; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; color: white; transition: 0.3s; text-decoration: none; display: inline-block; font-family: 'Cairo'; text-align: center; }
+        .btn-add { background-color: var(--primary-color); height: 38px; }
+        .btn-search { background-color: var(--secondary-color); height: 38px; }
+        .btn-edit { background-color: var(--warning-color); color: white; padding: 4px 8px; font-size: 11px; }
+        .btn-remove { background-color: var(--danger-color); color: white; padding: 4px 8px; font-size: 11px; }
+        
+        .ratio-btns { display: flex; gap: 4px; margin-top: 5px; flex-wrap: wrap; }
+        .ratio-btn { background-color: #ecf0f1; border: 1px solid #bdc3c7; border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: bold; cursor: pointer; color: var(--secondary-color); transition: 0.2s; font-family: 'Cairo'; }
+        .ratio-btn:hover { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 10px; }
+        table.screen-table { width: 100%; border-collapse: collapse; min-width: 650px; }
+        table.screen-table th, table.screen-table td { padding: 10px 8px; text-align: center; border-bottom: 1px solid #e1e8ed; font-size: 13px; }
+        table.screen-table th { background-color: #f4f6f9; color: var(--secondary-color); font-weight: 700; }
+        
+        .profit-text { font-weight: bold; font-size: 14px; }
+        .sales-text { color: #2980b9; font-weight: bold; }
+        .share-badge { background-color: var(--warning-color); color: #fff; padding: 2px 6px; border-radius: 10px; font-size: 11px; font-weight: bold; }
+        
+        .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); overflow-y: auto; padding: 15px; }
+        .modal-content { background-color: #fff; margin: 5% auto; padding: 20px; border-radius: 10px; width: 100%; max-width: 480px; box-shadow: 0 5px 25px rgba(0,0,0,0.2); position: relative; }
+        .close-modal { color: #aaa; float: left; font-size: 26px; font-weight: bold; cursor: pointer; line-height: 1; }
+        .close-modal:hover { color: var(--danger-color); }
+
+        @media (max-width: 768px) {
+            .top-navbar { padding: 10px 15px; }
+            .top-navbar h1 { font-size: 16px; }
+            .user-info span:not(:first-child) { display: none; }
+            .main-container { padding: 10px; }
+            .card { padding: 12px; }
+            .form-row { flex-direction: column; gap: 10px; align-items: stretch; }
+            .form-group { width: 100% !important; min-width: 100% !important; }
+            .btn { width: 100%; }
+            .form-group button[type="submit"], .form-group a.btn { width: 100%; margin-top: 5px; margin-right: 0 !important; }
+            .modal-content { margin: 15% auto; padding: 15px; width: 95%; }
+        }
+    </style>
+</head>
+<body>
+
+    {% include 'sidebar.html' %}
+    <header class="top-navbar">
+        <div class="nav-right">
+            <button class="menu-btn" onclick="toggleMenu()">☰</button>
+            <h1>حسابات وأرباح الشركاء</h1>
+        </div>
+        <div class="user-info"><span>👤</span>&nbsp;<span>{{ session['username'] }}</span></div>
+    </header>
+
+    <div class="main-container">
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div style="background-color: {% if category == 'error' %}#f8d7da{% else %}#d4edda{% endif %}; color: {% if category == 'error' %}#721c24{% else %}#155724{% endif %}; padding: 10px 15px; border-radius: 6px; margin-bottom: 12px; font-size: 13px; font-weight: bold; border: 1px solid {% if category == 'error' %}#f5c6cb{% else %}#c3e6cb{% endif %};">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="card">
+            <h2 class="section-title">🤝 إضافة شريك ممول جديد</h2>
+            <form action="/partners" method="POST">
+                <div class="form-row">
+                    <div class="form-group" style="flex: 2;">
+                        <label>اسم الشريك</label>
+                        <input type="text" name="name" placeholder="مثال: إبراهيم ممدوح" required>
+                    </div>
+                    <div class="form-group" style="flex: 2;">
+                        <label>رقم الهاتف</label>
+                        <input type="text" name="phone" placeholder="رقم الموبايل">
+                    </div>
+                    <div class="form-group" style="flex: 1.5;">
+                        <label>نسبة الربح (مثل 1/3 أو 50)</label>
+                        <input type="text" name="profit_share" id="add_share_input" value="1/1" placeholder="مثال: 1/3 أو 50" required>
+                        <div class="ratio-btns">
+                            <button type="button" class="ratio-btn" onclick="setRatio('add_share_input', '1/1')">كامل (1/1)</button>
+                            <button type="button" class="ratio-btn" onclick="setRatio('add_share_input', '1/2')">نصف (1/2)</button>
+                            <button type="button" class="ratio-btn" onclick="setRatio('add_share_input', '1/3')">ثلث (1/3)</button>
+                            <button type="button" class="ratio-btn" onclick="setRatio('add_share_input', '1/4')">ربع (1/4)</button>
+                        </div>
+                    </div>
+                    <div class="form-group" style="flex: unset;">
+                        <button type="submit" class="btn btn-add">حفظ الشريك ➕</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="card search-card">
+            <h2 class="section-title">📅 تصفية الحسابات والأرباح (بحث بفترة زمنية)</h2>
+            <form action="/partners" method="GET">
+                <div class="form-row" style="justify-content: center; align-items: center;">
+                    <div class="form-group">
+                        <label>من تاريخ:</label>
+                        <input type="date" name="date_from" value="{{ date_from if date_from else '' }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>إلى تاريخ:</label>
+                        <input type="date" name="date_to" value="{{ date_to if date_to else '' }}" required>
+                    </div>
+                    <div class="form-group" style="flex: unset; align-self: flex-end; flex-direction: row; gap: 8px;">
+                        <button type="submit" class="btn btn-search" style="flex: 1;">حساب 🔎</button>
+                        <a href="/partners" class="btn" style="background-color: #7f8c8d; flex: 1; text-align: center; display: flex; align-items: center; justify-content: center;">الكل</a>
+                    </div>
+                </div>
+            </form>
+            
+            {% if date_from and date_to %}
+                <p style="text-align: center; color: var(--primary-color); font-weight: bold; margin-top: 8px; font-size: 13px;">
+                    📊 تُعرض الآن: أرباح ومبيعات الشركاء في الفترة من ({{ date_from }}) إلى ({{ date_to }})
+                </p>
+            {% else %}
+                <p style="text-align: center; color: #7f8c8d; font-size: 12px; margin-top: 8px;">
+                    * تُعرض الآن الأرباح التراكمية من بداية العمل. للتقفيل الشهري، استخدم حقول التاريخ أعلاه.
+                </p>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <div class="table-responsive">
+                <table class="screen-table">
+                    <thead>
+                        <tr>
+                            <th>اسم الشريك</th>
+                            <th>رقم الهاتف</th>
+                            <th>نسبة الشريك</th>
+                            <th>الكمية المُباعة</th>
+                            <th>إجمالي المبيعات</th>
+                            <th>إجمالي الربح للمنتجات</th>
+                            <th>الرصيد المتبقي (الصافي)</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for partner in partners %}
+                            <tr>
+                                <td style="font-weight: bold;">{{ partner[1] }}</td>
+                                <td>{{ partner[2] if partner[2] else '---' }}</td>
+                                <td><span class="share-badge">{{ "%.2f"|format(stats[partner[1]]['share']) }}%</span></td>
+                                <td>{{ stats[partner[1]]['count'] }} قطعة</td>
+                                <td class="sales-text">{{ "%.2f"|format(stats[partner[1]]['sales']) }} EGP</td>
+                                <td style="color: #555; font-weight: bold;">{{ "%.2f"|format(stats[partner[1]]['total_profit']) }} EGP</td>
+                                
+                                <td class="profit-text" style="color: {% if stats[partner[1]]['net_due'] < 0 %}var(--danger-color){% else %}var(--success-color){% endif %};">
+                                    {{ "%.2f"|format(stats[partner[1]]['net_due']) }} EGP
+                                    <div style="font-size: 11px; color: var(--danger-color); font-weight: normal; margin-top: 2px;">
+                                        المسحب: {{ "%.2f"|format(stats[partner[1]]['total_withdrawn']) }} EGP
+                                    </div>
+                                    
+                                    {% if stats[partner[1]]['withdrawals'] %}
+                                        <div style="margin-top: 5px;">
+                                            <button type="button" class="btn" style="background-color: #2980b9; padding: 2px 6px; font-size: 10px;"
+                                                    onclick='openDetailsModal("{{ partner[1] }}", {{ stats[partner[1]]['withdrawals'] | tojson | safe }})'>
+                                                التفاصيل ({{ stats[partner[1]]['withdrawals']|length }}) 🔍
+                                            </button>
+                                        </div>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    <div style="display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;">
+                                        <button class="btn btn-edit" onclick="openEditModal({{ partner[0] }}, '{{ partner[1] }}', '{{ partner[2] }}', '{{ stats[partner[1]]['share'] }}')">تعديل ✏️</button>
+                                        <button type="button" class="btn" style="background-color: var(--success-color); padding: 4px 8px; font-size: 11px;" 
+                                               onclick="openWithdrawModal({{ partner[0] }}, '{{ partner[1] }}')">
+                                            تسليم 💵
+                                       </button>
+                                        {% if session['role'] == 'owner' %}
+                                            <a href="/delete_partner/{{ partner[0] }}" class="btn btn-remove" onclick="return confirm('تنبيه: هل أنت متأكد من حذف الشريك؟')">حذف ✖</a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="8" style="color: #7f8c8d; padding: 20px;">لا يوجد شركاء مسجلين حتى الآن.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeEditModal()">&times;</span>
+            <h3 style="color: var(--secondary-color); margin-top: 0; font-size: 16px;">تعديل بيانات الشريك</h3>
+            <form action="/edit_partner" method="POST">
+                <input type="hidden" name="partner_id" id="edit_partner_id">
+                
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label>اسم الشريك الجديد</label>
+                    <input type="text" name="name" id="edit_partner_name" required>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label>رقم الهاتف</label>
+                    <input type="text" name="phone" id="edit_partner_phone">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 18px;">
+                    <label>نسبة الشريك (مثل 1/3 أو 50)</label>
+                    <input type="text" name="profit_share" id="edit_partner_share" required>
+                    <div class="ratio-btns">
+                        <button type="button" class="ratio-btn" onclick="setRatio('edit_partner_share', '1/1')">كامل (1/1)</button>
+                        <button type="button" class="ratio-btn" onclick="setRatio('edit_partner_share', '1/2')">نصف (1/2)</button>
+                        <button type="button" class="ratio-btn" onclick="setRatio('edit_partner_share', '1/3')">ثلث (1/3)</button>
+                        <button type="button" class="ratio-btn" onclick="setRatio('edit_partner_share', '1/4')">ربع (1/4)</button>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-add" style="width: 100%;">حفظ التعديلات 💾</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="withdrawModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeWithdrawModal()">&times;</span>
+            <h3 style="color: var(--secondary-color); margin-top: 0; font-size: 16px;">تسليم أرباح للشريك: <span id="w_name"></span></h3>
+            <form action="/add_withdrawal" method="POST">
+                <input type="hidden" name="partner_id" id="w_id">
+                
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label>المبلغ المراد تسليمه (EGP)</label>
+                    <input type="number" name="amount" step="0.01" required placeholder="مثال: 1000">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label>ملاحظات (سبب أو تاريخ التسليم)</label>
+                    <input type="text" name="notes" placeholder="مثال: دفعة أرباح شهر أغسطس">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 18px; flex-direction: row; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="allow_negative" name="allow_negative" style="width: 16px; height: 16px; cursor: pointer;">
+                    <label for="allow_negative" style="margin-bottom: 0; cursor: pointer; color: var(--danger-color); font-size: 12px;">
+                        السماح بالتسليم حتى لو تجاوز الأرباح (سحب بالسالب / سُلفة)
+                    </label>
+                </div>
+                
+                <button type="submit" class="btn" style="width: 100%; background-color: var(--success-color);">تأكيد التسليم 💸</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="detailsModal" class="modal">
+        <div class="modal-content" style="max-width: 550px;">
+            <span class="close-modal" onclick="closeDetailsModal()">&times;</span>
+            <h3 style="color: var(--secondary-color); margin-top: 0; border-bottom: 2px solid var(--primary-color); padding-bottom: 6px; font-size: 16px;">
+                سجل مسحوبات الشريك: <span id="d_partner_name" style="color: var(--primary-color);"></span>
+            </h3>
+            <div id="d_withdrawals_list" style="max-height: 300px; overflow-y: auto; margin-top: 12px;">
+                <!-- يتم تعبئتها ديناميكياً -->
+            </div>
+            <button type="button" class="btn btn-search" style="width: 100%; margin-top: 15px;" onclick="closeDetailsModal()">إغلاق النافذة</button>
+        </div>
+    </div>
+
+    <div id="editWithdrawalModal" class="modal" style="z-index: 3500;">
+        <div class="modal-content" style="max-width: 380px;">
+            <span class="close-modal" onclick="closeEditWithdrawalModal()">&times;</span>
+            <h3 style="color: var(--secondary-color); margin-top: 0; font-size: 16px;">تعديل عملية السحب</h3>
+            <form action="/edit_withdrawal" method="POST">
+                <input type="hidden" name="withdrawal_id" id="ew_id">
+                
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label>المبلغ (EGP)</label>
+                    <input type="number" name="amount" id="ew_amount" step="0.01" required>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 18px;">
+                    <label>ملاحظات</label>
+                    <input type="text" name="notes" id="ew_notes">
+                </div>
+                
+                <button type="submit" class="btn btn-edit" style="width: 100%;">حفظ التعديل 💾</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById("sideMenu").classList.toggle("active");
+            document.getElementById("menuOverlay").classList.toggle("active");
+        }
+
+        function setRatio(inputId, val) {
+            document.getElementById(inputId).value = val;
+        }
+
+        function openEditModal(id, name, phone, share) {
+            document.getElementById('edit_partner_id').value = id;
+            document.getElementById('edit_partner_name').value = name;
+            document.getElementById('edit_partner_phone').value = (phone === 'None' || phone === 'null') ? '' : phone;
+            document.getElementById('edit_partner_share').value = share;
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        function openWithdrawModal(id, name) {
+            document.getElementById('w_id').value = id;
+            document.getElementById('w_name').innerText = name;
+            document.getElementById('withdrawModal').style.display = 'block';
+        }
+
+        function closeWithdrawModal() {
+            document.getElementById('withdrawModal').style.display = 'none';
+        }
+
+        function openDetailsModal(partnerName, withdrawals) {
+            document.getElementById('d_partner_name').innerText = partnerName;
+            let listContainer = document.getElementById('d_withdrawals_list');
+            listContainer.innerHTML = '';
+
+            let isOwner = "{{ session.get('role') }}" === "owner";
+
+            if (withdrawals && withdrawals.length > 0) {
+                let html = '<div class="table-responsive"><table style="width: 100%; border-collapse: collapse; text-align: right; font-size: 12px;">';
+                html += '<tr style="background-color: #f4f6f9; border-bottom: 2px solid #ddd;"><th style="padding: 8px;">المبلغ</th><th style="padding: 8px;">الملاحظات</th><th style="padding: 8px;">التاريخ</th>';
+                if (isOwner) { html += '<th style="padding: 8px; text-align: center;">الإجراءات</th>'; }
+                html += '</tr>';
+                
+                withdrawals.forEach(w => {
+                    html += `<tr style="border-bottom: 1px solid #eee;">
+                                <td style="padding: 8px; color: var(--danger-color); font-weight: bold;">${parseFloat(w[1]).toFixed(2)} EGP</td>
+                                <td style="padding: 8px; color: #333;">${w[2] ? w[2] : 'بدون ملاحظة'}</td>
+                                <td style="padding: 8px; color: #7f8c8d; font-size: 11px;">${w[3]}</td>`;
+                    
+                    if (isOwner) {
+                        html += `<td style="padding: 8px; text-align: center; white-space: nowrap;">
+                                    <button type="button" class="btn btn-edit" style="padding: 2px 5px; font-size: 10px;" onclick="openEditWithdrawalModal(${w[0]}, ${w[1]}, '${w[2] ? w[2] : ''}')">تعديل ✏️</button>
+                                    <a href="/delete_withdrawal/${w[0]}" class="btn btn-remove" style="padding: 2px 5px; font-size: 10px; margin-right: 2px;" onclick="return confirm('هل أنت متأكد من حذف عملية السحب هذه؟')">حذف ✖</a>
+                                 </td>`;
+                    }
+                    html += `</tr>`;
+                });
+                html += '</table></div>';
+                listContainer.innerHTML = html;
+            } else {
+                listContainer.innerHTML = '<p style="text-align: center; color: #7f8c8d; padding: 15px;">لا توجد مسحوبات مسجلة لهذا الشريك.</p>';
+            }
+
+            document.getElementById('detailsModal').style.display = 'block';
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('detailsModal').style.display = 'none';
+        }
+
+        function openEditWithdrawalModal(id, amount, notes) {
+            document.getElementById('ew_id').value = id;
+            document.getElementById('ew_amount').value = amount;
+            document.getElementById('ew_notes').value = (notes === 'None' || notes === 'null') ? '' : notes;
+            document.getElementById('editWithdrawalModal').style.display = 'block';
+        }
+
+        function closeEditWithdrawalModal() {
+            document.getElementById('editWithdrawalModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            let editModal = document.getElementById('editModal');
+            let withdrawModal = document.getElementById('withdrawModal');
+            let detailsModal = document.getElementById('detailsModal');
+            let editWithdrawalModal = document.getElementById('editWithdrawalModal');
+            
+            if (event.target == editModal) { editModal.style.display = "none"; }
+            if (event.target == withdrawModal) { withdrawModal.style.display = "none"; }
+            if (event.target == detailsModal) { detailsModal.style.display = "none"; }
+            if (event.target == editWithdrawalModal) { editWithdrawalModal.style.display = "none"; }
+        }
+    </script>
+</body>
+</html>

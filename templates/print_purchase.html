@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>فاتورة مشتريات #PUR-{{ purchase[0] }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; background: #eef2f5; }
+        
+        .ticket {
+            width: 72mm; 
+            max-width: 100%;
+            margin: 10px auto; 
+            padding: 2mm; 
+            background: #fff; 
+            color: #000; 
+            direction: rtl; 
+            font-family: 'Cairo', sans-serif; 
+            font-size: 12px; 
+            line-height: 1.4; 
+        }
+
+        .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 5px; margin-bottom: 5px; }
+        .header h2 { margin: 0; font-size: 16px; font-weight: 700; }
+        .header p { margin: 2px 0; font-size: 12px; }
+        .info { border-bottom: 1px dashed #000; padding-bottom: 5px; margin-bottom: 5px; font-size: 11px; }
+        .info div { display: flex; justify-content: space-between; margin-bottom: 3px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-bottom: 5px; table-layout: fixed; }
+        th { border-bottom: 1px solid #000; padding: 4px 2px; font-size: 11px; font-weight: bold; }
+        td { padding: 4px 2px; font-size: 11px; word-wrap: break-word; overflow-wrap: break-word; }
+        th:first-child, td:first-child { text-align: right; width: 35%; }
+        th:last-child, td:last-child { text-align: left; width: 20%; }
+        th:not(:first-child):not(:last-child), td:not(:first-child):not(:last-child) { text-align: center; }
+        
+        .totals { border-top: 1px dashed #000; padding-top: 5px; font-size: 12px; font-weight: bold; }
+        .totals div { display: flex; justify-content: space-between; margin-bottom: 2px; }
+        
+        .footer { text-align: center; margin-top: 10px; font-size: 11px; border-top: 1px dashed #000; padding-top: 5px; }
+        
+        /* التعديل هنا: تقليل المسافة وتغيير الكلمة */
+        .print-end { text-align: center; margin-top: 12mm; font-size: 10px; color: #555; }
+        
+        .actions { margin-top: 20px; text-align: center; padding-bottom: 20px; }
+        .btn-print { background: #27ae60; color: #fff; padding: 10px 20px; border: none; cursor: pointer; font-family: 'Cairo'; border-radius: 4px; font-weight:bold; font-size: 14px;}
+        
+        @page { size: 80mm auto; margin: 0; }
+        @media print { 
+            body { background: #fff; margin: 0; padding: 0; }
+            .ticket { margin: 0 auto !important; width: 72mm !important; border: none !important; }
+            .actions { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="ticket">
+        <div class="header">
+            <h2>فاتورة مشتريات (توريد)</h2>
+            <p>رقم الفاتورة: #PUR-{{ purchase[0] }}</p>
+        </div>
+        
+        <div class="info">
+            <div><span>المورد:</span> <span>{{ purchase[1] }}</span></div>
+            <div><span>التاريخ:</span> <span>{{ purchase[3] }}</span></div>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>الصنف</th>
+                    <th>ك</th>
+                    <th>التكلفة</th>
+                    <th>الشريك</th>
+                    <th>الإجمالي</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item[0] }}</td>
+                    <td>{{ item[1] }}</td>
+                    <td>{{ "%.2f"|format(item[2]) }}</td>
+                    <td style="font-weight: bold;">{{ item[3] }}</td>
+                    <td>{{ "%.2f"|format(item[4]) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="totals">
+            <div><span>إجمالي الفاتورة:</span> <span>{{ "%.2f"|format(purchase[2]) }} EGP</span></div>
+        </div>
+        
+        <div class="footer">
+            <p>نسخة داخلية - المتجر الذكي</p>
+        </div>
+        
+        <!-- جملة لدفع الورقة للخارج -->
+        <div class="print-end">
+            - بداية الفاتورة -
+        </div>
+    </div>
+
+    <div class="actions">
+        <button class="btn-print" onclick="window.print()">🖨️ طباعة الفاتورة الآن</button>
+    </div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('print') === 'true') { window.onload = function() { setTimeout(() => { window.print(); }, 500); } }
+    </script>
+</body>
+</html>

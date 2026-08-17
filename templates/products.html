@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة المنتجات - نظام المتجر</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Cairo', sans-serif; background-color: #eef2f5; margin: 0; padding: 0; color: #333; }
+        .top-navbar { background-color: #ffffff; padding: 15px 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .nav-right { display: flex; align-items: center; gap: 15px; }
+        .menu-btn { font-size: 24px; background: none; border: none; cursor: pointer; color: #2c3e50; padding: 5px; line-height: 1; }
+        .top-navbar h1 { margin: 0; font-size: 20px; color: #2c3e50; }
+        .user-info { display: flex; align-items: center; font-size: 14px; color: #555; }
+        
+        .side-menu { position: fixed; top: 0; right: -280px; width: 260px; height: 100%; background-color: #2c3e50; color: white; transition: 0.4s ease; z-index: 2000; padding-top: 60px; box-shadow: -2px 0 15px rgba(0,0,0,0.3); }
+        .side-menu.active { right: 0; }
+        .side-menu a { padding: 15px 25px; text-decoration: none; font-size: 16px; color: #ecf0f1; display: block; transition: 0.2s; border-bottom: 1px solid #34495e; }
+        .side-menu a:hover { background-color: #34495e; padding-right: 35px; }
+        .close-menu { position: absolute; top: 15px; left: 20px; font-size: 28px; cursor: pointer; color: white; line-height: 1; }
+        .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1500; display: none; }
+        .menu-overlay.active { display: block; }
+        
+        .main-container { padding: 20px; max-width: 1200px; margin: auto; }
+        .card { background-color: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); margin-bottom: 20px; border-top: 4px solid #2980b9; }
+        .section-title { font-size: 16px; font-weight: bold; color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
+        
+        .form-row { display: flex; gap: 15px; margin-bottom: 15px; align-items: flex-end; flex-wrap: wrap; }
+        .form-group { flex: 1; min-width: 150px; display: flex; flex-direction: column; }
+        .form-group label { margin-bottom: 5px; font-size: 13px; font-weight: 600; color: #555; }
+        .form-group input, .form-group select { padding: 10px; border: 1px solid #dcdde1; border-radius: 6px; font-size: 14px; width: 100%; box-sizing: border-box; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #2980b9; }
+        
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; color: white; transition: 0.3s; text-decoration: none; display: inline-block; }
+        .btn-add { background-color: #2980b9; height: 42px; width: 100%; }
+        .btn-edit { background-color: #f39c12; color: white; padding: 5px 10px; font-size: 12px; }
+        .btn-remove { background-color: #e74c3c; color: white; padding: 5px 10px; font-size: 12px; }
+        
+        table.screen-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; min-width: 700px; }
+        table.screen-table th, table.screen-table td { padding: 12px; text-align: center; border-bottom: 1px solid #e1e8ed; font-size: 14px; }
+        table.screen-table th { background-color: #f4f6f9; color: #2c3e50; }
+        
+        .partner-badge { background-color: #8e44ad; color: #fff; padding: 3px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+
+        .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: #fff; margin: 10% auto; padding: 20px; border-radius: 10px; width: 90%; max-width: 450px; }
+        .close-modal { color: #aaa; float: left; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close-modal:hover { color: #e74c3c; }
+    </style>
+</head>
+<body>
+
+    {% include 'sidebar.html' %}
+
+    <header class="top-navbar">
+        <div class="nav-right">
+            <button class="menu-btn" onclick="toggleMenu()">☰</button>
+            <h1>إدارة المنتجات والمخزن</h1>
+        </div>
+        <div class="user-info"><span>👤</span><span>مرحباً، {{ session['username'] }}</span></div>
+    </header>
+
+    <div class="main-container">
+        
+        {% if session.get('p_prod_a') %}
+        <div class="card">
+            <h2 class="section-title">📦 إضافة منتج جديد للمخزن</h2>
+            <form action="/products" method="POST">
+                <div class="form-row">
+                    <div class="form-group" style="flex: 2.5;">
+                        <label>اسم المنتج</label>
+                        <input type="text" name="name" placeholder="مثال: شاشة سمارت 43 بوصة" required>
+                    </div>
+                    
+                    <!-- إتاحة سعر التكلفة لكل من يملك صلاحية الإضافة -->
+                    <div class="form-group" style="flex: 1;">
+                        <label>سعر التكلفة</label>
+                        <input type="number" name="cost_price" step="0.01" placeholder="0.00" required>
+                    </div>
+
+                    <div class="form-group" style="flex: 1;">
+                        <label>سعر البيع</label>
+                        <input type="number" name="sell_price" step="0.01" placeholder="0.00" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>الكمية بالمخزن</label>
+                        <input type="number" name="stock_qty" placeholder="0" required>
+                    </div>
+                    <div class="form-group" style="flex: 1.5;">
+                        <label>شريك البضاعة (الممول)</label>
+                        <select name="partner_name">
+                            <option value="بدون شريك">-- بدون شريك --</option>
+                            {% for partner in partners %}
+                                <option value="{{ partner[1] }}">{{ partner[1] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: unset;">
+                        <button type="submit" class="btn btn-add">إضافة المنتج 💾</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <h2 class="section-title">📋 قائمة المنتجات المسجلة في المخزن</h2>
+            <div style="overflow-x: auto;">
+                <table class="screen-table">
+                    <thead>
+                        <tr>
+                            <th>الرقم</th>
+                            <th>اسم المنتج</th>
+                            {% if session.get('view_cost') == 'all' %}
+                            <th>التكلفة</th>
+                            {% endif %}
+                            <th>سعر البيع</th>
+                            <th>المخزن</th>
+                            <th>الشريك التابع</th>
+                            {% if session.get('p_prod_e') or session.get('p_prod_d') %}
+                            <th>الإجراءات</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+<tbody>
+        {% for prod in products %}
+            <tr>
+                <td>{{ prod.id }}</td>
+                <td style="font-weight: bold;">{{ prod.name }}</td>
+                
+                {% if session.get('view_cost') == 'all' %}
+                <td style="color: #c0392b;">{{ "%.2f"|format(prod.cost_price) }} EGP</td>
+                {% endif %}
+
+                <td style="color: #27ae60; font-weight: bold;">{{ "%.2f"|format(prod.sell_price) }} EGP</td>
+                <td><span style="background-color: #eef2f5; padding: 4px 8px; border-radius: 4px; font-weight: bold;">{{ prod.stock_qty }}</span></td>
+                <td><span class="partner-badge">{{ prod.partner_name if prod.partner_name else 'بدون شريك' }}</span></td>
+                
+                {% if session.get('p_prod_e') or session.get('p_prod_d') %}
+                <td>
+                    {% if session.get('p_prod_e') %}
+                    <button class="btn btn-edit edit-btn" 
+                            data-id="{{ prod.id }}" 
+                            data-name="{{ prod.name }}" 
+                            data-cost="{% if session.get('view_cost') == 'all' %}{{ prod.cost_price }}{% else %}0{% endif %}" 
+                            data-sell="{{ prod.sell_price }}" 
+                            data-stock="{{ prod.stock_qty }}" 
+                            data-partner="{{ prod.partner_name if prod.partner_name else 'بدون شريك' }}"
+                            onclick="openEditModalFromButton(this)">تعديل ✏️</button>
+                    {% endif %}
+                    
+                    {% if session.get('p_prod_d') %}
+                    <a href="/delete_product/{{ prod.id }}" class="btn btn-remove" onclick="return confirm('هل أنت متأكد من حذف هذا المنتج؟')">حذف ✖</a>
+                    {% endif %}
+                </td>
+                {% endif %}
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="7" style="color: #7f8c8d; padding: 15px;">لا توجد منتجات مسجلة حتى الآن.</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeEditModal()">&times;</span>
+            <h3 style="color: #2c3e50; margin-top: 0;">تعديل بيانات المنتج والشريك</h3>
+            <form action="/edit_product" method="POST">
+                <input type="hidden" name="prod_id" id="edit_prod_id">
+                
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label>اسم المنتج</label>
+                    <input type="text" name="name" id="edit_name" required>
+                </div>
+
+                {% if session.get('view_cost') == 'all' %}
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label>سعر التكلفة</label>
+                    <input type="number" name="cost_price" id="edit_cost" step="0.01" required>
+                </div>
+                {% endif %}
+
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label>سعر البيع</label>
+                    <input type="number" name="sell_price" id="edit_sell" step="0.01" required>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label>الكمية بالمخزن</label>
+                    <input type="number" name="stock_qty" id="edit_stock" required>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label>شريك البضاعة (الممول)</label>
+                    <select name="partner_name" id="edit_partner">
+                        <option value="بدون شريك">-- بدون شريك --</option>
+                        {% for partner in partners %}
+                            <option value="{{ partner[1] }}">{{ partner[1] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-add" style="width: 100%;">حفظ التعديلات 💾</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById("sideMenu").classList.toggle("active");
+            document.getElementById("menuOverlay").classList.toggle("active");
+        }
+
+        function openEditModalFromButton(btn) {
+            let id = btn.getAttribute('data-id');
+            let name = btn.getAttribute('data-name');
+            let cost = btn.getAttribute('data-cost');
+            let sell = btn.getAttribute('data-sell');
+            let stock = btn.getAttribute('data-stock');
+            let partner = btn.getAttribute('data-partner');
+
+            document.getElementById('edit_prod_id').value = id;
+            document.getElementById('edit_name').value = name;
+            
+            let costInput = document.getElementById('edit_cost');
+            if(costInput) {
+                costInput.value = cost;
+            }
+            
+            document.getElementById('edit_sell').value = sell;
+            document.getElementById('edit_stock').value = stock;
+            document.getElementById('edit_partner').value = partner;
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            let modal = document.getElementById('editModal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+<!-- الشريط العلوي الموحد -->
+<header class="top-navbar">
+    <div class="nav-right">
+        <button class="menu-btn" onclick="toggleMenu()">☰</button>
+        <!-- المتغير page_title هيتغير حسب الصفحة اللي بتستدعيه -->
+        <h1>{{ page_title | default('FlashCashier') }}</h1>
+    </div>
+    <div class="user-info" style="font-size: 14px; display: flex; align-items: center; gap: 8px;">
+        <span>👤</span> 
+        <span>مرحباً، <strong>{{ session['username'] }}</strong></span>
+    </div>
+</header>

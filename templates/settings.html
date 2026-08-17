@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم ERP - الإعدادات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    
+    <!-- مكتبة Cropper.js لقص الصور -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Cairo', sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; color: #2c3e50; }
+        .top-navbar { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); padding: 15px 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; color: white; position: sticky; top: 0; z-index: 1000; }
+        .menu-btn { font-size: 24px; background: none; border: none; cursor: pointer; color: white; }
+        .top-navbar h1 { margin: 0; font-size: 22px; font-weight: 900; letter-spacing: 1px; }
+        
+        .side-menu { position: fixed; top: 0; right: -280px; width: 260px; height: 100%; background-color: #1a252f; color: white; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 2000; padding-top: 60px; box-shadow: -5px 0 20px rgba(0,0,0,0.5); }
+        .side-menu.active { right: 0; }
+        .side-menu a { padding: 16px 25px; text-decoration: none; font-size: 15px; font-weight: 600; color: #bdc3c7; display: block; transition: 0.3s; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .side-menu a:hover { background-color: #2980b9; color: white; padding-right: 35px; border-right: 4px solid #3498db; }
+        .close-menu { position: absolute; top: 15px; left: 20px; font-size: 28px; cursor: pointer; color: #e74c3c; }
+
+        .main-container { padding: 30px 20px; max-width: 1200px; margin: auto; }
+        
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 10px; overflow-x: auto; }
+        .tab-btn { background: #fff; border: 1px solid #ddd; padding: 12px 25px; border-radius: 8px 8px 0 0; cursor: pointer; font-family: 'Cairo'; font-weight: bold; color: #7f8c8d; transition: 0.3s; white-space: nowrap; }
+        .tab-btn.active { background: #2980b9; color: white; border-color: #2980b9; box-shadow: 0 -4px 10px rgba(41, 128, 185, 0.2); }
+        .tab-content { display: none; animation: fadeIn 0.4s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { background-color: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.03); margin-bottom: 25px; }
+        .section-title { font-size: 18px; font-weight: 900; color: #2c3e50; border-right: 4px solid #2980b9; padding-right: 10px; margin-top: 0; margin-bottom: 20px; }
+        
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: bold; color: #34495e; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 8px; font-family: 'Cairo'; font-size: 14px; box-sizing: border-box; }
+        .form-group input[type="file"] { padding: 9px 12px; background: #f8f9fa; cursor: pointer; }
+        
+        /* إعدادات معاينة الصورة */
+        .logo-preview-container { text-align: center; margin-bottom: 15px; }
+        .logo-preview-container img { max-height: 120px; border-radius: 8px; border: 2px dashed #bdc3c7; padding: 5px; background: #f9f9f9; display: none; margin: auto; }
+        
+        .matrix-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid #eee; }
+        .matrix-table th { background: #f8f9fa; padding: 12px; font-size: 13px; text-align: center; color: #2c3e50; border-bottom: 2px solid #eee; }
+        .matrix-table td { padding: 10px; text-align: center; border-bottom: 1px solid #f1f2f6; }
+        .matrix-table td:first-child { text-align: right; font-weight: bold; background: #fafafa; }
+        .matrix-table input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #2980b9; }
+
+        .role-presets { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .preset-btn { background: #ecf0f1; border: none; padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; color: #34495e; transition: 0.2s; }
+        .preset-btn:hover { background: #bdc3c7; }
+        .preset-admin { background: #ffeaa7; color: #856404; }
+        .preset-auditor { background: #d1ecf1; color: #0c5460; }
+        .preset-partner { background: #d4edda; color: #155724; }
+        .preset-cashier { background: #f8d7da; color: #721c24; }
+
+        .btn { padding: 12px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; color: white; transition: 0.3s; }
+        .btn-primary { background: #2980b9; }
+        .btn-success { background: #27ae60; }
+        .btn-danger { background: #e74c3c; text-decoration: none; display: inline-block; text-align: center; }
+        .btn-warning { background: #f39c12; }
+        
+        .users-list { display: flex; flex-direction: column; gap: 15px; }
+        .user-card { display: flex; justify-content: space-between; align-items: center; background: #fff; border: 1px solid #eee; padding: 15px 20px; border-radius: 10px; border-right: 5px solid #2ecc71; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .user-card.suspended { border-right-color: #e74c3c; background: #fffcfc; }
+        .user-info h4 { margin: 0 0 5px 0; font-size: 16px; color: #2c3e50; }
+        .user-info p { margin: 0; font-size: 12px; color: #7f8c8d; }
+        .user-actions button, .user-actions a { background: #f1f2f6; color: #2c3e50; border: 1px solid #ddd; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; font-family: 'Cairo'; font-size: 12px; text-decoration: none; margin-right: 5px; }
+        .user-actions button:hover, .user-actions a:hover { background: #e2e6ea; }
+
+        .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+        .modal-content { background-color: #fff; margin: 3% auto; padding: 30px; border-radius: 15px; max-width: 750px; position: relative; max-height: 90vh; overflow-y: auto; }
+        .close-modal { position: absolute; left: 20px; top: 15px; font-size: 24px; cursor: pointer; color: #e74c3c; }
+        
+        /* تنسيقات نافذة القص */
+        .crop-container { max-height: 60vh; overflow: hidden; margin-bottom: 20px; background: #000; border-radius: 8px; }
+        .crop-controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    </style>
+</head>
+<body>
+
+    {% include 'sidebar.html' %}
+
+    <header class="top-navbar">
+        <div class="nav-right">
+            <button class="menu-btn" onclick="toggleMenu()">☰</button>
+            <!-- <h1> FlashCashier </h1> -->
+        </div>
+        <div style="font-size: 14px;">مرحباً، <strong>{{ session['username'] }}</strong></div>
+    </header>
+
+    <div class="main-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div style="padding:15px; margin-bottom:20px; border-radius:8px; font-weight:bold; background-color: {% if category == 'error' %}#f8d7da{% else %}#d4edda{% endif %}; color: {% if category == 'error' %}#721c24{% else %}#155724{% endif %}; border: 1px solid {% if category == 'error' %}#f5c6cb{% else %}#c3e6cb{% endif %};">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab(event, 'tab-users')">👥 الحسابات والصلاحيات</button>
+            <button class="tab-btn" onclick="openTab(event, 'tab-store')">🏪 بيانات المتجر واللوجو</button>
+            <button class="tab-btn" onclick="openTab(event, 'tab-security')">🔒 الأمان والنسخ</button>
+        </div>
+
+        <!-- 1. الحسابات والصلاحيات -->
+        <div id="tab-users" class="tab-content active">
+            <!-- نفس الكود القديم الخاص بالموظفين (لا تغيير) -->
+            {% if session['role'] != 'owner' %}
+            <div style="background: #e8f4f8; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px dashed #b6d4fe; color: #055160;">
+                <strong>حصة الحسابات الفرعية:</strong> المسموح ({{ my_max_users }}) | المستخدم ({{ current_sub_users }})
+            </div>
+            {% endif %}
+
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 class="section-title" style="margin: 0; border: none;">إدارة فريق العمل</h2>
+                    <button class="btn btn-primary" style="width: auto;" onclick="openUserModal()">+ إضافة حساب</button>
+                </div>
+
+                <div class="users-list">
+                    {% for node in users_tree %}
+                        {% if session['role'] == 'owner' and node.admin %}
+                        <div class="user-card {% if node.admin[3] == 'suspended' %}suspended{% endif %}">
+                            <div class="user-info">
+                                <h4>{{ node.admin[1] }} <span style="background: #ffeaa7; color: #856404; font-size: 10px; padding: 2px 6px; border-radius: 10px;">مدير فرع</span></h4>
+                                <p>الانتهاء: {{ node.admin[4] or 'غير محدد' }} | الحد الأقصى للموظفين: {{ node.admin[5] }}</p>
+                                <p style="margin-top: 5px;">نطاق المنتجات: <b>{{ 'الكل' if node.admin[7] == 'all' else 'منتجاته فقط' }}</b> | التكلفة: <b style="color:#e74c3c;">{{ 'مخفية' if node.admin[6] == 'none' else 'مرئية' }}</b></p>
+                            </div>
+                            <div class="user-actions">
+                                <button onclick='editUser({{ node.admin | tojson | safe }})'>صلاحيات ⚙️</button>
+                                <a href="/delete_user/{{ node.admin[0] }}" onclick="return confirm('حذف العميل سيمسح موظفيه أيضاً! متأكد؟')" style="color: #e74c3c;">حذف ✖</a>
+                                {% if node.children|length > 0 %}
+                                <button onclick="toggleChildren('{{ node.admin[0] }}')">عرض الموظفين 🔽</button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div id="children-{{ node.admin[0] }}" style="display: none; padding-right: 40px; border-right: 2px dashed #ddd; margin-right: 20px;">
+                            {% for child in node.children %}
+                            <div class="user-card" style="margin-top: 10px; border-right-color: #3498db; padding: 10px 15px;">
+                                <div class="user-info">
+                                    <h4 style="font-size: 14px;">{{ child[1] }}</h4>
+                                    <p>طبيعة العمل: {{ child[2] }}</p>
+                                    <p style="margin-top: 5px;">نطاق المنتجات: <b>{{ 'الكل' if child[7] == 'all' else 'منتجاته فقط' }}</b> | التكلفة: <b style="color:#e74c3c;">{{ 'مخفية' if child[6] == 'none' else 'مرئية' }}</b></p>
+                                </div>
+                                <div class="user-actions">
+                                    <button onclick='editUser({{ child | tojson | safe }})'>تعديل ✏️</button>
+                                    <a href="/delete_user/{{ child[0] }}" onclick="return confirm('تأكيد الحذف؟')" style="color: #e74c3c;">حذف ✖</a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% elif not node.admin %}
+                        {% for child in node.children %}
+                        <div class="user-card">
+                            <div class="user-info">
+                                <h4>{{ child[1] }}</h4>
+                                <p>طبيعة العمل: {{ child[2] }}</p>
+                                <p style="margin-top: 5px;">نطاق المنتجات: <b>{{ 'الكل' if child[7] == 'all' else 'منتجاته فقط' }}</b> | التكلفة: <b style="color:#e74c3c;">{{ 'مخفية' if child[6] == 'none' else 'مرئية' }}</b></p>
+                            </div>
+                            <div class="user-actions">
+                                <button onclick='editUser({{ child | tojson | safe }})'>الصلاحيات ⚙️</button>
+                                <a href="/delete_user/{{ child[0] }}" onclick="return confirm('تأكيد الحذف؟')" style="color: #e74c3c;">حذف ✖</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+                    {% else %}
+                        <p style="text-align: center; color: #7f8c8d;">لا يوجد حسابات مسجلة.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. بيانات المتجر واللوجو -->
+        <div id="tab-store" class="tab-content">
+            <div class="card">
+                <h2 class="section-title">بيانات الفاتورة والشعار</h2>
+                
+                <form action="/update_invoice_settings" method="POST" enctype="multipart/form-data">
+                    <!-- منطقة معاينة ورفع اللوجو -->
+                    <!-- منطقة معاينة ورفع اللوجو -->
+                    <div class="logo-preview-container">
+                        <label style="color: #34495e; font-weight: bold; margin-bottom: 10px; display: block;">الشعار الحالي للمتجر</label>
+                        
+                        <img id="logo-preview" 
+                             src="{% if settings.logo %}{{ url_for('static', filename='uploads/' + settings.logo) }}{% endif %}" 
+                             style="display: {% if settings.logo %}inline-block{% else %}none{% endif %};">
+                             
+                        <!-- زرار الحذف يظهر فقط لو في لوجو -->
+                        {% if settings.logo %}
+                        <div style="margin-top: 10px;">
+                            <!-- لاحظ إننا عملنا فورم تانية صغيرة عشان زرار الحذف يروح للمسار الصح بدون ما يبوظ الإعدادات -->
+                            <button type="submit" form="deleteLogoForm" class="btn btn-danger" style="padding: 6px 15px; font-size: 12px; border-radius: 4px;">🗑️ حذف الشعار</button>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group" style="text-align: center; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px dashed #bdc3c7;">
+                        <label style="color: #2980b9;">اختر صورة لتغيير أو إضافة الشعار</label>
+                        <input type="file" name="store_logo" id="store_logo_input" accept="image/*" style="width: auto; margin: auto;">
+                        <small style="display: block; color: #7f8c8d; margin-top: 5px;">سيتم فتح نافذة لاختيار مقاس وتدوير الصورة تلقائياً.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>اسم المتجر (يظهر أعلى الفاتورة)</label>
+                        <input type="text" name="store_name" value="{{ settings.store_name }}" required>
+                    </div>
+                    <div style="display: flex; gap: 15px;">
+                        <div class="form-group" style="flex: 1;"><label>رقم الهاتف</label><input type="text" name="store_phone" value="{{ settings.store_phone }}"></div>
+                        <div class="form-group" style="flex: 1;"><label>الفرع / العنوان</label><input type="text" name="store_branch" value="{{ settings.store_branch }}"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>رسالة الترحيب (أسفل الفاتورة)</label>
+                        <input type="text" name="invoice_footer" value="{{ settings.footer }}">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">حفظ إعدادات المتجر 💾</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 3. الأمان والنسخ الاحتياطي -->
+        <div id="tab-security" class="tab-content">
+            <div class="card">
+                <h2 class="section-title">تغيير كلمة المرور الخاصة بك</h2>
+                <form action="/change_password" method="POST" style="display: flex; gap: 15px; align-items: flex-end;">
+                    <div class="form-group" style="flex: 1; margin: 0;"><label>الحالية</label><input type="password" name="old_password" required></div>
+                    <div class="form-group" style="flex: 1; margin: 0;"><label>الجديدة</label><input type="password" name="new_password" required></div>
+                    <button type="submit" class="btn btn-primary" style="width: 150px;">تغيير 🔒</button>
+                </form>
+            </div>
+
+            {% if session['role'] in ['owner', 'admin'] %}
+            <div class="card" style="border-top-color: #e74c3c;">
+                <h2 class="section-title" style="color: #c0392b; border-color: #e74c3c;">إدارة البيانات {{ '(للمالك فقط)' if session['role'] == 'owner' else '(مخصصة لمتجرك فقط)' }}</h2>
+                
+                <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 20px;">
+                    <a href="/backup_db" class="btn" style="background: #27ae60; flex: 1;">تنزيل نسخة احتياطية (Backup) 📥</a>
+                </div>
+
+                <form action="/import_db" method="POST" enctype="multipart/form-data" style="margin-bottom: 25px; background: #fff3cd; padding: 15px; border-radius: 8px;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 10px;">استعادة نسخة سابقة (Restore):</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="file" name="backup_file" accept=".sqlite" required style="border: 1px solid #ccc; background: white; padding: 8px; flex: 1; border-radius: 6px;">
+                        <button type="submit" class="btn btn-warning" onclick="return confirm('تحذير: سيتم مسح الداتا الحالية واستبدالها بالملف المرفوع. متأكد؟')">استرجاع 📤</button>
+                    </div>
+                </form>
+
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+
+                <form action="/purge_data" method="POST" onsubmit="return confirm('لا يمكن التراجع عن هذه الخطوة نهائياً! هل أنت متأكد؟');">
+                    <label style="font-weight: bold; display: block; margin-bottom: 10px; color: #c0392b;">تصفير وحذف البيانات:</label>
+                    <div style="display: flex; gap: 10px;">
+                        <select name="target" required style="border-color: #e74c3c; flex: 1;">
+                            <option value="invoices">مسح الفواتير</option>
+                            <option value="purchases">مسح المشتريات</option>
+                            <option value="expenses">مسح المصروفات</option>
+                            <option value="partners">تصفير الشركاء</option>
+                            <option value="factory_reset">ضبط المصنع (مسح الكل ماعدا المستخدمين)</option>
+                        </select>
+                        <button type="submit" class="btn btn-danger">تنفيذ الحذف 🗑️</button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- نافذة قص الصورة (Cropper Modal) -->
+    <div id="cropModal" class="modal" style="z-index: 5000;">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close-modal" onclick="closeCropModal()">&times;</span>
+            <h3 style="margin-top:0; color: #2c3e50; text-align: center;">ضبط وقص الشعار ✂️</h3>
+            
+            <div class="crop-container">
+                <img id="image-to-crop" style="max-width: 100%; display: block;">
+            </div>
+            
+            <div class="crop-controls">
+                <button type="button" class="btn btn-warning" onclick="cropper.rotate(-90)">↺ تدوير يسار</button>
+                <button type="button" class="btn btn-warning" onclick="cropper.rotate(90)">↻ تدوير يمين</button>
+                <button type="button" class="btn" style="background:#7f8c8d; color:white;" onclick="cropper.reset()">إعادة ضبط</button>
+            </div>
+            
+            <div style="display: flex; gap: 15px;">
+                <button type="button" class="btn btn-success" style="flex: 1;" onclick="applyCrop()">اعتماد الشعار ✔️</button>
+                <button type="button" class="btn btn-danger" style="flex: 1;" onclick="closeCropModal()">إلغاء ✖</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- النافذة المنبثقة: إضافة وتعديل المستخدمين (باقي الكود كما هو) -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeUserModal()">&times;</span>
+            <h2 class="section-title" id="modalTitle" style="border: none;">إضافة حساب جديد</h2>
+            <form id="userForm" action="/add_user" method="POST">
+                <!-- محتوى فورم الموظفين كما هو -->
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <div class="form-group" style="flex: 1; min-width: 150px;"><label>اسم الدخول</label><input type="text" name="username" id="m_user" required></div>
+                    <div class="form-group" style="flex: 1; min-width: 150px;"><label id="lbl_pass">كلمة المرور</label><input type="text" name="password" id="m_pass" placeholder="أدخل الرقم السري"><input type="text" name="reset_password" id="m_reset" placeholder="باسورد جديد (اختياري)" style="display: none; border-color: #e74c3c; background: #fffcfc;"></div>
+                </div>
+                <div class="form-group">
+                    <label>الرتبة (للإعداد السريع للصلاحيات)</label>
+                    <div class="role-presets">
+                        {% if session['role'] == 'owner' %}<button type="button" class="preset-btn preset-admin" onclick="applyPreset('admin')">مدير فرع</button>{% endif %}
+                        <button type="button" class="preset-btn preset-auditor" onclick="applyPreset('auditor')">محاسب/مراجع</button>
+                        <button type="button" class="preset-btn preset-partner" onclick="applyPreset('partner')">شريك</button>
+                        <button type="button" class="preset-btn preset-cashier" onclick="applyPreset('cashier')">كاشير (مبيعات)</button>
+                    </div>
+                    <input type="hidden" name="role" id="m_role" value="cashier">
+                </div>
+                <label style="font-size: 14px; font-weight: bold; color: #2980b9; margin-bottom: 5px; display: block;">مصفوفة الصلاحيات (اختر بعناية):</label>
+                <table class="matrix-table">
+                    <tr><th>القسم</th><th>عرض 👁️</th><th>إضافة ➕</th><th>تعديل ✏️</th><th>حذف ✖️</th></tr>
+                    <tr><td>المبيعات</td><td><input type="checkbox" name="p_sales_v" id="sv" value="1"></td><td><input type="checkbox" name="p_sales_a" id="sa" value="1"></td><td><input type="checkbox" name="p_sales_e" id="se" value="1"></td><td><input type="checkbox" name="p_sales_d" id="sd" value="1"></td></tr>
+                    <tr><td>المنتجات</td><td><input type="checkbox" name="p_prod_v" id="pv" value="1"></td><td><input type="checkbox" name="p_prod_a" id="pa" value="1"></td><td><input type="checkbox" name="p_prod_e" id="pe" value="1"></td><td><input type="checkbox" name="p_prod_d" id="pd" value="1"></td></tr>
+                    <tr><td>المشتريات</td><td><input type="checkbox" name="p_purch_v" id="puv" value="1"></td><td><input type="checkbox" name="p_purch_a" id="pua" value="1"></td><td><input type="checkbox" name="p_purch_e" id="pue" value="1"></td><td><input type="checkbox" name="p_purch_d" id="pud" value="1"></td></tr>
+                    <tr><td>المصروفات</td><td><input type="checkbox" name="p_exp_v" id="ev" value="1"></td><td><input type="checkbox" name="p_exp_a" id="ea" value="1"></td><td><input type="checkbox" name="p_exp_e" id="ee" value="1"></td><td><input type="checkbox" name="p_exp_d" id="ed" value="1"></td></tr>
+                    <tr><td>التقارير</td><td><input type="checkbox" name="p_rep_v" id="rv" value="1"></td><td><input type="checkbox" name="p_rep_a" id="ra" value="1"></td><td><input type="checkbox" name="p_rep_e" id="re" value="1"></td><td><input type="checkbox" name="p_rep_d" id="rd" value="1"></td></tr>
+                    <tr><td>الشركاء</td><td><input type="checkbox" name="p_part_v" id="pav" value="1"></td><td><input type="checkbox" name="p_part_a" id="paa" value="1"></td><td><input type="checkbox" name="p_part_e" id="pae" value="1"></td><td><input type="checkbox" name="p_part_d" id="pad" value="1"></td></tr>
+                </table>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 15px;">
+                    <div class="form-group" style="flex: 1; min-width: 200px;"><label style="color: #2980b9; font-weight: bold;">نطاق رؤية المنتجات:</label><select name="view_scope" id="m_scope"><option value="all">رؤية جميع منتجات الفرع</option><option value="own">المنتجات التي أضافها فقط</option></select></div>
+                    <div class="form-group" style="flex: 1; min-width: 200px;"><label style="color: #e74c3c; font-weight: bold;">إخفاء/إظهار التكلفة:</label><select name="view_cost" id="m_cost"><option value="none">محجوب تماماً</option>{% if session['role'] == 'owner' or session['view_cost'] == 'all' %}<option value="all">كشف التكلفة والأرباح</option>{% endif %}</select></div>
+                </div>
+                {% if session['role'] == 'owner' %}
+                <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px solid #ffeeba;">
+                    <label style="font-weight: bold; color: #856404; margin-bottom: 10px; display: block;">إعدادات الباقة (للمالك فقط):</label>
+                    <div style="display: flex; gap: 10px;"><div class="form-group" style="flex: 1; margin: 0;"><label>الاشتراك</label><select name="status" id="m_status"><option value="active">نشط</option><option value="suspended">موقوف</option></select></div><div class="form-group" style="flex: 1; margin: 0;"><label>الانتهاء</label><input type="date" name="expiry_date" id="m_expiry"></div><div class="form-group" style="flex: 1; margin: 0;"><label>حد الموظفين</label><input type="number" name="max_users" id="m_max" min="0" placeholder="0 = فردي"></div></div>
+                </div>
+                {% endif %}
+                <button type="submit" class="btn btn-primary" style="margin-top: 20px; width: 100%; padding: 12px; font-size: 16px;">حفظ وتطبيق البيانات ✔️</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- مكتبة الجافاسكريبت لـ Cropper -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+    <script>
+        // سكريبت قص وتدوير الصور
+        let cropper;
+        let cropModal = document.getElementById('cropModal');
+        let imageToCrop = document.getElementById('image-to-crop');
+        let logoInput = document.getElementById('store_logo_input');
+        let logoPreview = document.getElementById('logo-preview');
+
+        logoInput.addEventListener('change', function(e) {
+            let files = e.target.files;
+            if (files && files.length > 0) {
+                let reader = new FileReader();
+                reader.onload = function(event) {
+                    imageToCrop.src = event.target.result;
+                    cropModal.style.display = 'block';
+                    
+                    if (cropper) { cropper.destroy(); }
+                    
+                    cropper = new Cropper(imageToCrop, {
+                        aspectRatio: NaN, // يتيح القص الحر بدون تقييد بأبعاد معينة
+                        viewMode: 1,
+                        autoCropArea: 1,
+                    });
+                };
+                reader.readAsDataURL(files[0]);
+            }
+        });
+
+        function closeCropModal() {
+            cropModal.style.display = 'none';
+            if (cropper) { cropper.destroy(); cropper = null; }
+            logoInput.value = ''; // تفريغ حقل الاختيار لو العميل ألغى
+        }
+
+        function applyCrop() {
+            if (!cropper) return;
+            
+            // استخراج الصورة المقصوصة
+            let canvas = cropper.getCroppedCanvas({
+                maxWidth: 600,
+                maxHeight: 600
+            });
+            
+            // عرض المعاينة
+            logoPreview.src = canvas.toDataURL('image/png');
+            logoPreview.style.display = 'inline-block';
+            
+            // تحويل الـ Canvas لملف وحقنه في الـ Input (عشان يتبعت للسيرفر كملف عادي)
+            canvas.toBlob(function(blob) {
+                let file = new File([blob], "cropped_logo.png", { type: "image/png" });
+                let dt = new DataTransfer();
+                dt.items.add(file);
+                logoInput.files = dt.files;
+            }, 'image/png');
+            
+            cropModal.style.display = 'none';
+            cropper.destroy();
+            cropper = null;
+        }
+
+        // سكريبتات عامة (القائمة الجانبية والموظفين)
+        function toggleMenu() { document.getElementById("sideMenu").classList.toggle("active"); }
+        
+        function openTab(evt, tabName) {
+            let tabcontent = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < tabcontent.length; i++) { tabcontent[i].style.display = "none"; }
+            let tablinks = document.getElementsByClassName("tab-btn");
+            for (let i = 0; i < tablinks.length; i++) { tablinks[i].className = tablinks[i].className.replace(" active", ""); }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+        
+        function toggleChildren(adminId) {
+            let container = document.getElementById('children-' + adminId);
+            container.style.display = container.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function openUserModal() {
+            document.getElementById('userForm').action = "/add_user";
+            document.getElementById('modalTitle').innerText = "إضافة حساب جديد";
+            document.getElementById('m_user').value = ""; document.getElementById('m_user').readOnly = false;
+            document.getElementById('m_pass').style.display = "block"; document.getElementById('m_pass').value = ""; document.getElementById('m_pass').required = true;
+            document.getElementById('m_reset').style.display = "none";
+            document.getElementById('lbl_pass').innerText = "كلمة المرور";
+            document.querySelectorAll('.matrix-table input[type="checkbox"]').forEach(cb => cb.checked = false);
+            
+            if(document.getElementById('m_scope')) document.getElementById('m_scope').value = "own";
+            if(document.getElementById('m_cost')) document.getElementById('m_cost').value = "none";
+            
+            document.getElementById('userModal').style.display = "block";
+        }
+
+        function editUser(u) {
+            document.getElementById('userForm').action = "/update_user_permissions/" + u[0];
+            document.getElementById('modalTitle').innerText = "تعديل حساب: " + u[1];
+            document.getElementById('m_user').value = u[1]; document.getElementById('m_user').readOnly = true;
+            document.getElementById('m_role').value = u[2];
+            
+            document.getElementById('m_pass').style.display = "none"; document.getElementById('m_pass').required = false;
+            document.getElementById('m_reset').style.display = "block"; document.getElementById('m_reset').value = "";
+            document.getElementById('lbl_pass').innerText = "تغيير الباسورد (اختياري)";
+
+            const setC = (id, val) => { if(document.getElementById(id)) document.getElementById(id).checked = val === 1; };
+            setC('sv', u[9]); setC('sa', u[10]); setC('se', u[11]); setC('sd', u[12]);
+            setC('pv', u[13]); setC('pa', u[14]); setC('pe', u[15]); setC('pd', u[16]);
+            setC('puv', u[17]); setC('pua', u[18]); setC('pue', u[19]); setC('pud', u[20]);
+            setC('ev', u[21]); setC('ea', u[22]); setC('ee', u[23]); setC('ed', u[24]);
+            setC('rv', u[25]); setC('ra', u[26]); setC('re', u[27]); setC('rd', u[28]);
+            setC('pav', u[29]); setC('paa', u[30]); setC('pae', u[31]); setC('pad', u[32]);
+            
+            if(document.getElementById('m_cost')) document.getElementById('m_cost').value = u[6];
+            if(document.getElementById('m_scope')) document.getElementById('m_scope').value = u[7];
+
+            if(document.getElementById('m_status')) {
+                document.getElementById('m_status').value = u[3];
+                document.getElementById('m_expiry').value = u[4] || '';
+                document.getElementById('m_max').value = u[5];
+            }
+            document.getElementById('userModal').style.display = "block";
+        }
+
+        function closeUserModal() { document.getElementById('userModal').style.display = "none"; }
+
+        function applyPreset(role) {
+            document.getElementById('m_role').value = role;
+            document.querySelectorAll('.matrix-table input[type="checkbox"]').forEach(cb => cb.checked = false);
+            
+            if(role === 'cashier') {
+                document.getElementById('sv').checked = true; document.getElementById('sa').checked = true;
+                document.getElementById('pv').checked = true;
+                if(document.getElementById('m_cost')) document.getElementById('m_cost').value = 'none';
+                if(document.getElementById('m_scope')) document.getElementById('m_scope').value = 'all';
+            }
+            else if(role === 'auditor') {
+                ['sv','pv','puv','ev','rv','pav'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).checked = true; });
+                if(document.getElementById('m_cost')) document.getElementById('m_cost').value = 'all';
+                if(document.getElementById('m_scope')) document.getElementById('m_scope').value = 'all';
+            }
+            else if(role === 'partner') {
+                if(document.getElementById('rv')) document.getElementById('rv').checked = true; 
+                if(document.getElementById('pav')) document.getElementById('pav').checked = true;
+                if(document.getElementById('m_cost')) document.getElementById('m_cost').value = 'own';
+                if(document.getElementById('m_scope')) document.getElementById('m_scope').value = 'own';
+            }
+            else if(role === 'admin') {
+                document.querySelectorAll('.matrix-table input[type="checkbox"]').forEach(cb => cb.checked = true);
+                if(document.getElementById('m_cost')) document.getElementById('m_cost').value = 'all';
+                if(document.getElementById('m_scope')) document.getElementById('m_scope').value = 'all';
+            }
+        }
+    </script>
+    <!-- فورم مخفية لحذف اللوجو -->
+    <form id="deleteLogoForm" action="/remove_logo" method="POST" onsubmit="return confirm('هل أنت متأكد من حذف شعار المتجر؟');"></form>
+</body>
+</html>

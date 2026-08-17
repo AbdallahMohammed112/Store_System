@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>فاتورة مبيعات #{{ invoice_no }}</title>
+    <!-- تم استخدام الوزن الخفيف 400 لمنع تداخل الحروف في الطباعة الحرارية -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; background: #eef2f5; }
+        
+        .ticket {
+            width: 72mm; /* مساحة آمنة جداً لمنع القص من الحواف */
+            max-width: 100%;
+            margin: 10px auto; 
+            padding: 2mm; 
+            background: #fff; 
+            color: #000; 
+            direction: rtl; 
+            font-family: 'Cairo', sans-serif; 
+            font-size: 12px; 
+            line-height: 1.4; 
+            font-weight: 400; /* خط خفيف لمنع الـ Text Overflow */
+        }
+
+        .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 5px; margin-bottom: 5px; }
+        .store-logo { max-width: 60%; max-height: 70px; object-fit: contain; margin-bottom: 5px; filter: grayscale(100%); }
+        .header h2 { margin: 0; font-size: 16px; font-weight: 700; }
+        .header p { margin: 2px 0; font-size: 12px; }
+        
+        .info { border-bottom: 1px dashed #000; padding-bottom: 5px; margin-bottom: 5px; font-size: 11px; }
+        .info div { display: flex; justify-content: space-between; margin-bottom: 3px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-bottom: 5px; table-layout: fixed; }
+        th { border-bottom: 1px solid #000; padding: 4px 2px; font-size: 11px; font-weight: 600; }
+        td { padding: 4px 2px; font-size: 11px; word-wrap: break-word; overflow-wrap: break-word; }
+        th:first-child, td:first-child { text-align: right; width: 45%; }
+        th:last-child, td:last-child { text-align: left; width: 35%; }
+        th:not(:first-child):not(:last-child), td:not(:first-child):not(:last-child) { text-align: center; width: 20%; }
+        
+        .totals { border-top: 1px dashed #000; padding-top: 5px; font-size: 12px; font-weight: 600; }
+        .totals div { display: flex; justify-content: space-between; margin-bottom: 3px; }
+        
+        .footer { text-align: center; margin-top: 10px; font-size: 11px; border-top: 1px dashed #000; padding-top: 5px; }
+        
+        .print-end { text-align: center; margin-top: 12mm; font-size: 10px; color: #555; }
+        
+        .actions { margin-top: 20px; text-align: center; padding-bottom: 20px; display: flex; flex-direction: column; gap: 10px; max-width: 300px; margin-left: auto; margin-right: auto; }
+        .btn { padding: 12px; border: none; cursor: pointer; font-family: 'Cairo'; border-radius: 6px; font-weight: bold; font-size: 14px; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
+        .btn-print { background: #2c3e50; color: #fff; }
+        .btn-whatsapp { background: #25D366; color: #fff; }
+        
+        @page { size: 80mm auto; margin: 0; }
+        @media print { 
+            body { background: #fff; margin: 0; padding: 0; }
+            .ticket { margin: 0 auto !important; width: 72mm !important; border: none !important; }
+            .actions { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="ticket">
+        <div class="header">
+            {% if store.logo %}
+                <img src="{{ url_for('static', filename='uploads/' + store.logo) }}" alt="Logo" class="store-logo">
+            {% endif %}
+            <h2>{{ store.name }}</h2>
+            <p>هاتف: {{ store.phone }}</p>
+            {% if store.branch %}
+            <p>فرع: {{ store.branch }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="info">
+            <div><span>رقم الفاتورة:</span> <span>#{{ invoice_no }}</span></div>
+            <div><span>التاريخ:</span> <span>{{ date }}</span></div>
+            <div><span>العميل:</span> <span>{{ customer_name }}</span></div>
+            {% if cashier %}
+            <div><span>الكاشير:</span> <span>{{ cashier }}</span></div>
+            {% endif %}
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>الصنف</th>
+                    <th>ك</th>
+                    <th>القيمة</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.qty }}</td>
+                    <td>
+                      {% if item.total %}
+                        {{ item.total }}
+                      {% else %}
+                        {{ "%.2f"|format(item.price|float * item.qty|int) }}
+                      {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="totals">
+            {% if discount and discount != "0.00" and discount != "0" %}
+            <div style="font-weight: 400; font-size: 11px;"><span>الإجمالي:</span> <span>{{ subtotal }}</span></div>
+            <div style="font-weight: 400; font-size: 11px;"><span>الخصم:</span> <span>-{{ discount }}</span></div>
+            {% endif %}
+            <div style="font-size: 13px; margin-top: 3px;"><span>الصافي المطلوب:</span> <span>{{ net_total }} EGP</span></div>
+        </div>
+        
+        <div class="footer">
+            <p>{{ store.footer }}</p>
+        </div>
+        
+        <div class="print-end">
+            - بداية الفاتورة -
+        </div>
+    </div>
+
+    <!-- أزرار الإجراءات في حالة إلغاء الطباعة التلقائية -->
+    <div class="actions">
+        <button class="btn btn-print" onclick="window.print()">🖨️ طباعة الفاتورة الآن</button>
+        <button class="btn btn-whatsapp" onclick="sendWhatsApp()">💬 إرسال الفاتورة للعميل</button>
+        <button class="btn" style="background: #e74c3c; color: white;" onclick="window.history.back()">🔙 العودة للكاشير</button>
+    </div>
+
+    <script>
+        // 1. تشغيل الطباعة أوتوماتيك أول ما الصفحة تفتح
+        window.onload = function() {
+            setTimeout(() => { 
+                window.print(); 
+            }, 500); // تأخير نصف ثانية لضمان تحميل الخطوط
+        };
+
+        // 2. السحر هنا: العودة للكاشير أوتوماتيك بمجرد قفل شاشة الطباعة في الموبايل
+        window.onafterprint = function() {
+            window.history.back(); 
+            // ملحوظة: لو عاوز توجهه لصفحة معينة بدل الرجوع خطوة، استخدم السطر ده بدل اللي فوق:
+            // window.location.href = '/pos'; 
+        };
+
+        // 3. كود الواتساب
+        function sendWhatsApp() {
+            let msg = `*فـاتـورة مـبـيـعـات* 🧾\n`;
+            msg += `------------------------\n`;
+            msg += `المتجر: *{{ store.name }}*\n`;
+            msg += `رقم الفاتورة: #{{ invoice_no }}\n`;
+            msg += `التاريخ: {{ date }}\n`;
+            msg += `العميل: {{ customer_name }}\n`;
+            msg += `------------------------\n`;
+            
+            {% for item in items %}
+                {% if item.total %}
+                    msg += `📦 {{ item.name }} (الكمية: {{ item.qty }}) = {{ item.total }}\n`;
+                {% else %}
+                    msg += `📦 {{ item.name }} (الكمية: {{ item.qty }})\n`;
+                {% endif %}
+            {% endfor %}
+            
+            msg += `------------------------\n`;
+            
+            {% if discount and discount != "0.00" and discount != "0" %}
+            msg += `الإجمالي: {{ subtotal }} ج.م\n`;
+            msg += `الخصم: {{ discount }} ج.م\n`;
+            {% endif %}
+            
+            msg += `*الصافي المطلوب: {{ net_total }} ج.م*\n`;
+            msg += `------------------------\n`;
+            msg += `{{ store.footer }}`;
+
+            let encodedMsg = encodeURIComponent(msg);
+            window.open(`https://wa.me/?text=${encodedMsg}`, '_blank');
+        }
+    </script>
+</body>
+</html>

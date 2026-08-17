@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التقارير الشاملة - نظام المتجر</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, 'Tajawal', sans-serif; background-color: #eef2f5; margin: 0; padding: 0; color: #333; }
+        
+        .top-navbar { background-color: #ffffff; padding: 15px 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        .nav-right { display: flex; align-items: center; gap: 15px; }
+        .menu-btn { font-size: 24px; background: none; border: none; cursor: pointer; color: #2c3e50; padding: 5px; line-height: 1; }
+        .top-navbar h1 { margin: 0; font-size: 20px; color: #2c3e50; }
+        .user-info { display: flex; align-items: center; font-size: 14px; color: #555; }
+        
+        .side-menu { position: fixed; top: 0; right: -280px; width: 260px; height: 100%; background-color: #2c3e50; color: white; transition: 0.4s ease; z-index: 2000; padding-top: 60px; box-shadow: -2px 0 15px rgba(0,0,0,0.3); }
+        .side-menu.active { right: 0; }
+        .side-menu a { padding: 15px 25px; text-decoration: none; font-size: 16px; color: #ecf0f1; display: block; transition: 0.2s; border-bottom: 1px solid #34495e; }
+        .side-menu a:hover { background-color: #34495e; padding-right: 35px; }
+        .close-menu { position: absolute; top: 15px; left: 20px; font-size: 28px; cursor: pointer; color: white; line-height: 1; }
+        .close-menu:hover { color: #e74c3c; }
+        .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1500; display: none; opacity: 0; transition: 0.4s; }
+        .menu-overlay.active { display: block; opacity: 1; }
+
+        .main-container { padding: 20px; max-width: 1200px; margin: auto; display: flex; flex-direction: column; gap: 20px; }
+        .card { background-color: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); }
+        .section-title { font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
+        
+        .filters-row { display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end; background-color: #f8faff; padding: 15px; border-radius: 8px; border: 1px solid #dcdde1; }
+        .form-group { flex: 1; min-width: 150px; display: flex; flex-direction: column; }
+        .form-group label { margin-bottom: 5px; font-size: 13px; font-weight: 600; color: #555; }
+        .form-group input { padding: 8px; border: 1px solid #dcdde1; border-radius: 6px; font-size: 14px; font-family: 'Tajawal'; width: 100%; box-sizing: border-box; }
+        
+        .select2-container--default .select2-selection--single { height: 38px; border: 1px solid #dcdde1; border-radius: 6px; font-family: 'Tajawal'; }
+        .select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 36px; color: #333; }
+        .select2-container--default .select2-selection--single .select2-selection__arrow { height: 36px; }
+
+        .btn-filter { background-color: #34495e; color: white; border: none; border-radius: 6px; padding: 10px 20px; font-weight: bold; font-family: 'Tajawal'; cursor: pointer; height: 38px; flex: 1; min-width: 120px; }
+        .btn-reset { background-color: #95a5a6; color: white; padding: 10px 15px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: bold; text-align: center; height: 38px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; flex: 1; min-width: 100px; }
+
+        .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .kpi-box { background-color: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); text-align: center; border-bottom: 4px solid #bdc3c7; }
+        .kpi-box.sales { border-bottom-color: #2980b9; }
+        .kpi-box.cost { border-bottom-color: #f39c12; }
+        .kpi-box.expenses { border-bottom-color: #e74c3c; }
+        .kpi-box.profit { border-bottom-color: #27ae60; background-color: #f9fffb; }
+        .kpi-box h3 { margin: 0 0 10px 0; font-size: 15px; color: #7f8c8d; font-weight: 600; }
+        .kpi-box .value { font-size: 22px; font-weight: bold; color: #2c3e50; }
+        .kpi-box.profit .value { color: #27ae60; font-size: 26px; }
+        .kpi-box.expenses .value { color: #e74c3c; }
+        .kpi-box .currency { font-size: 13px; color: #95a5a6; font-weight: normal; }
+
+        .grid-sections { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
+        .info-list { list-style: none; padding: 0; margin: 0; }
+        .info-list li { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; align-items: center; }
+        .info-list li:last-child { border-bottom: none; }
+        .text-danger { color: #e74c3c; font-weight: bold; }
+        .text-success { color: #27ae60; font-weight: bold; }
+        
+        .clickable-item { cursor: pointer; color: #2980b9; text-decoration: underline; font-weight: bold; transition: 0.2s; }
+        .clickable-item:hover { color: #1a569d; }
+
+        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid #e1e8ed; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        table th, table td { padding: 12px 10px; text-align: center; border-bottom: 1px solid #e1e8ed; font-size: 14px; }
+        table th { background-color: #f4f6f9; color: #2c3e50; font-weight: bold; white-space: nowrap; }
+        
+        .modal-table { min-width: 100%; margin-bottom: 10px; text-align: center; }
+        .modal-table th, .modal-table td { text-align: center !important; padding: 10px; }
+        .modal-table th { background-color: #eef2f5; font-size: 13px; color: #2c3e50; border-bottom: 1px solid #ccc; }
+        .modal-table td { font-size: 13px; border-bottom: 1px dashed #e1e8ed; }
+
+        .btn-view { background-color: #2980b9; color: white; border: none; border-radius: 4px; padding: 6px 10px; cursor: pointer; font-size: 12px; font-weight: bold; font-family: 'Tajawal'; }
+        .btn-return { background-color: #e74c3c; color: white; border: none; border-radius: 4px; padding: 6px 10px; cursor: pointer; font-size: 12px; font-weight: bold; font-family: 'Tajawal'; margin-right: 5px; }
+        .btn-wa { background-color: #25D366; color: white; border: none; border-radius: 4px; padding: 6px 10px; cursor: pointer; font-size: 12px; font-weight: bold; font-family: 'Tajawal'; margin-right: 5px; }
+        .btn-print { background-color: #27ae60; color: white; border: none; border-radius: 4px; padding: 6px 10px; cursor: pointer; font-size: 12px; font-weight: bold; font-family: 'Tajawal'; text-decoration: none; display: inline-block; margin-right: 5px; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; }
+        .modal-content { background: #fff; width: 95%; max-width: 600px; margin: 5% auto; padding: 25px; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); position: relative; max-height: 85vh; overflow-y: auto; text-align: center; }
+        .close-modal { position: absolute; top: 15px; left: 15px; font-size: 24px; cursor: pointer; color: #7f8c8d; line-height: 1; }
+        
+        .display-area { padding: 10px; direction: rtl; font-family: 'Tajawal', sans-serif; text-align: center; }
+        .display-area h3 { text-align: center; margin-top: 0; margin-bottom: 10px; border-bottom: 1px dashed #000; padding-bottom: 10px; }
+        .display-area p { margin: 5px 0; font-size: 14px; text-align: center; }
+
+        .wa-input-container { display: flex; gap: 10px; width: 100%; margin-top: 10px; }
+        .wa-input-container input { flex: 2; padding: 8px; border: 1px solid #dcdde1; border-radius: 4px; font-family: 'Tajawal'; text-align: center; font-size: 13px; }
+        .wa-input-container button { flex: 1; margin: 0; }
+
+        .settings-panel { background: #f8faff; padding: 10px; border-radius: 8px; border: 1px solid #dcdde1; margin-top: 10px; display: flex; justify-content: center; gap: 15px; font-size: 13px; font-weight: bold; }
+        .settings-panel label { cursor: pointer; display: flex; align-items: center; gap: 5px; color: #2c3e50; }
+
+        @media (max-width: 768px) { 
+            .top-navbar { padding: 15px 20px; }
+            .grid-sections { grid-template-columns: 1fr; }
+            .wa-input-container { flex-direction: column; }
+            .filters-row { flex-direction: column; align-items: stretch; gap: 10px; padding: 15px; }
+            .form-group { width: 100%; }
+        }
+        
+        @media (max-width: 480px) {
+            .table-responsive { border: none; }
+            table th, table td { font-size: 12px; padding: 10px 5px; }
+            .btn-view, .btn-return, .btn-print { padding: 5px 8px; font-size: 11px; margin-bottom: 5px; display: inline-block; }
+            .action-cell { display: flex; flex-direction: column; gap: 5px; }
+        }
+    </style>
+</head>
+<body>
+
+    {% include 'sidebar.html' %}
+
+    <header class="top-navbar">
+        <div class="nav-right">
+            <button class="menu-btn" onclick="toggleMenu()">☰</button>
+            <h1>📊 التقارير الشاملة</h1>
+        </div>
+        <div class="user-info"><span>👤 {{ session['username'] }}</span></div>
+    </header>
+
+    <div class="main-container">
+        <!-- الفلاتر -->
+        <form class="card filters-row" action="/reports" method="GET">
+            <div class="form-group">
+                <label>رقم الفاتورة</label>
+                <input type="text" name="invoice_no" value="{{ request.args.get('invoice_no', '') }}" placeholder="بحث برقم الفاتورة...">
+            </div>
+            
+            <div class="form-group">
+                <label>اسم العميل</label>
+                <select name="customer_name" class="select2">
+                    <option value="">الكل (ابحث باسم العميل...)</option>
+                    {% for cust in customers %}
+                        <option value="{{ cust }}" {% if request.args.get('customer_name') == cust %}selected{% endif %}>{{ cust }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>البائع (الكاشير)</label>
+                <select name="created_by" class="select2">
+                    <option value="">الكل</option>
+                    {% for u in users %}
+                        <option value="{{ u }}" {% if request.args.get('created_by') == u %}selected{% endif %}>{{ u }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>من تاريخ</label>
+                <input type="date" name="date_from" value="{{ date_from }}">
+            </div>
+            <div class="form-group">
+                <label>إلى تاريخ</label>
+                <input type="date" name="date_to" value="{{ date_to }}">
+            </div>
+            <div class="filter-actions" style="display: flex; gap: 10px;">
+                <button type="submit" class="btn-filter">بحث وتصفية 🔍</button>
+                <a href="/reports" class="btn-reset">إلغاء</a>
+            </div>
+        </form>
+
+        <div class="kpi-container">
+            <div class="kpi-box sales">
+                <h3>إجمالي المبيعات</h3>
+                <div class="value">{{ "{:,.2f}".format(stats.total_sales) }}</div>
+                <div class="currency">EGP</div>
+            </div>
+            
+            <!-- حماية معلومات الأرباح والمصروفات لمن يمتلك الصلاحية الكلية فقط -->
+            {% if session.get('view_cost') == 'all' %}
+            <div class="kpi-box cost">
+                <h3>تكلفة المبيعات</h3>
+                <div class="value">{{ "{:,.2f}".format(stats.total_cost) }}</div>
+                <div class="currency">EGP</div>
+            </div>
+            <div class="kpi-box expenses">
+                <h3>المصروفات</h3>
+                <div class="value">{{ "{:,.2f}".format(stats.total_expenses) }}</div>
+                <div class="currency">EGP</div>
+            </div>
+            <div class="kpi-box profit">
+                <h3>صافي المحل</h3>
+                <div class="value">{{ "{:,.2f}".format(stats.net_profit) }}</div>
+                <div class="currency">EGP</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="grid-sections">
+            {% if session.get('view_cost') in ['all', 'own'] %}
+            <div class="card">
+                <h2 class="section-title">🤝 أرباح الشركاء (للفترة المحددة)</h2>
+                <ul class="info-list">
+                    {% if partners %}
+                        {% for p in partners %}
+                        <li>
+                            <span>{{ p.name }} ({{ p.share }}%)</span> 
+                            <span class="text-success">{{ "{:,.2f}".format(p.net) }} EGP</span>
+                        </li>
+                        {% endfor %}
+                    {% else %}
+                        <li><span style="color: #7f8c8d;">لا يوجد شركاء مسجلين.</span></li>
+                    {% endif %}
+                </ul>
+            </div>
+            {% endif %}
+            
+            <div class="card">
+                <h2 class="section-title">📦 حالة المخزون والديون (شاملة)</h2>
+                <ul class="info-list">
+                    {% if session.get('view_cost') == 'all' %}
+                    <li>
+                        <span>قيمة البضاعة بالمخزن:</span> 
+                        <b class="clickable-item" onclick="openStockModal()">{{ "{:,.2f}".format(inventory.stock_value) }} EGP 👆</b>
+                    </li>
+                    <li>
+                        <span>إجمالي ديون الموردين:</span> 
+                        <b class="text-danger">{{ "{:,.2f}".format(inventory.supplier_debts) }} EGP</b>
+                    </li>
+                    {% endif %}
+                    <li>
+                        <div style="display: flex; align-items: center; gap: 5px;">
+                            <span>نواقص المخزن (أقل من:</span>
+                            <input type="number" id="low_stock_input" value="5" style="width: 50px; padding: 3px; border: 1px solid #ccc; border-radius: 4px; text-align: center; font-family: 'Tajawal';">
+                            <span>):</span>
+                        </div>
+                        <b class="clickable-item text-danger" style="color: #e74c3c;" onclick="openLowStockModal()">عرض النواقص 📦👆</b>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- سجل الفواتير -->
+        <div class="card">
+            <h2 class="section-title">🧾 سجل المبيعات ({{ invoices|length }} فاتورة)</h2>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>رقم الفاتورة</th>
+                            <th>التاريخ</th>
+                            <th>العميل</th>
+                            <th>البائع</th>
+                            <th>الإجمالي</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for inv in invoices %}
+                        <tr>
+                            <td style="font-weight: bold; color: #2980b9;">#{{ inv[0] }}</td>
+                            <td>{{ inv[1][:10] }}</td>
+                            <td>{{ inv[2] }}</td>
+                            <td>{{ inv[5] or 'غير محدد' }}</td>
+                            <td style="font-weight: bold;">{{ "{:,.2f}".format(inv[3]) }}</td>
+                            <td class="action-cell">
+                                <button class="btn-view" onclick="viewInvoice('{{ inv[0] }}')">👁️ عرض للزبون</button>
+                                <a href="/print_old_invoice/{{ inv[0] }}" target="_blank" class="btn-print">🖨️ طباعة للزبون</a>
+                                <!-- زر الحذف يظهر لمن يمتلك الصلاحية فقط -->
+                                {% if session.get('p_rep_d') %}
+                                <button class="btn-return" onclick="returnInvoice('{{ inv[0] }}')">↩️ استرجاع</button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" style="padding: 20px; color: #7f8c8d;">لا توجد مبيعات تتطابق مع البحث.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة عرض الفاتورة للزبون -->
+    <div class="modal" id="invoiceModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="$('#invoiceModal').fadeOut()">&times;</span>
+            <div class="display-area">
+                <h3 style="color: #2980b9; border-bottom: 2px solid #2980b9;">تفاصيل الفاتورة الأصلية</h3>
+                <p><strong>رقم الفاتورة:</strong> <span id="m_inv_no"></span></p>
+                <p><strong>التاريخ:</strong> <span id="m_inv_date"></span></p>
+                <p><strong>العميل:</strong> <span id="m_inv_cust"></span></p>
+                <p><strong>البائع:</strong> <span id="m_inv_cashier"></span></p>
+                
+                <table class="modal-table" style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                    <thead>
+                        <tr>
+                            <th style="width: 40%;">المنتج</th>
+                            <th style="width: 20%;">الكمية</th>
+                            <th style="width: 20%;">سعر البيع</th>
+                            <th style="width: 20%;">الإجمالي</th>
+                        </tr>
+                    </thead>
+                    <tbody id="m_inv_items"></tbody>
+                </table>
+                <h4 style="text-align: center; margin-top: 15px; border-top: 1px dashed #000; padding-top: 10px;">الإجمالي الكلي: <span id="m_inv_total"></span> EGP</h4>
+            </div>
+            
+            <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+                <button class="btn-print" style="width: 100%; padding: 10px; font-size: 14px; margin-bottom: 10px;" onclick="window.open('/print_old_invoice/' + $('#m_inv_no').text(), '_blank')">🖨️ طباعة الفاتورة (نسخة للزبون)</button>
+                
+                <div class="wa-input-container">
+                    <input type="text" id="wa_invoice_phone" placeholder="رقم هاتف العميل (مثال: 010...)">
+                    <button class="btn-wa" onclick="sendInvoiceWA()">💬 إرسال الفاتورة واتساب</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تفاصيل المخزون -->
+    <div class="modal" id="stockModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="$('#stockModal').fadeOut()">&times;</span>
+            <h3 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-top: 0; text-align: center;">📦 تفاصيل المخزون ورأس مال الشركاء</h3>
+            
+            <h4 style="color: #7f8c8d; margin-bottom: 10px; text-align: center;">💰 رأس مال الشركاء (البضاعة الحالية)</h4>
+            <div class="table-responsive">
+                <table class="modal-table">
+                    <thead>
+                        <tr>
+                            <th>اسم الشريك</th>
+                            <th>رأس المال (قيمة البضاعة)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stock_partners_body">
+                        <tr><td colspan="2">جاري التحميل...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h4 style="color: #7f8c8d; margin-bottom: 10px; text-align: center;">📋 تفاصيل المنتجات بالمخزن</h4>
+            <div class="table-responsive">
+                <table class="modal-table">
+                    <thead>
+                        <tr>
+                            <th>المنتج</th>
+                            <th>الكمية</th>
+                            <th>التكلفة</th>
+                            <th>الإجمالي</th>
+                            <th>الشريك</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stock_products_body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة النواقص القابلة للتخصيص -->
+    <div class="modal" id="lowStockModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="$('#lowStockModal').fadeOut()">&times;</span>
+            <div class="display-area">
+                <h3 style="color: #e74c3c; border-bottom: 2px solid #e74c3c; padding-bottom: 10px; margin-top: 0; text-align: center;">⚠️ تقرير نواقص المخزن</h3>
+                <p style="text-align: center; color: #555; font-size: 13px;">المنتجات التي كميتها أقل من: <span id="display_threshold" style="font-weight: bold;"></span></p>
+                
+                <table class="modal-table" style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                    <thead>
+                        <tr>
+                            <th style="width: 10%;"><input type="checkbox" id="selectAllItems" checked></th>
+                            <th>المنتج</th>
+                            <th>الكمية المتبقية</th>
+                            <th id="costHeaderTh">التكلفة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="low_stock_body">
+                        <tr><td colspan="4" style="text-align: center;">جاري التحميل...</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="settings-panel">
+                    <span>إظهار الأعمدة:</span>
+                    <label><input type="checkbox" id="col_name" checked> الصنف</label>
+                    <label><input type="checkbox" id="col_qty" checked> الكمية</label>
+                    <!-- حماية الإعدادات في الواجهة -->
+                    {% if session.get('view_cost') != 'none' %}
+                    <label><input type="checkbox" id="col_cost" checked> التكلفة</label>
+                    {% else %}
+                    <input type="hidden" id="col_cost" value="0">
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+                <button class="btn-view" style="width: 100%; padding: 10px; font-size: 14px;" onclick="printSelectedLowStock()">🖨️ طباعة النواقص (خارجي)</button>
+                
+                <div class="wa-input-container">
+                    <input type="text" id="wa_lowstock_phone" placeholder="رقم هاتف المورد (مثال: 010...)">
+                    <button class="btn-wa" onclick="sendSelectedLowStockWA()">💬 إرسال واتساب</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form id="printForm" action="/print_custom_low_stock" method="POST" target="_blank" style="display:none;">
+        <input type="hidden" name="data" id="printDataInput">
+    </form>
+
+    <script>
+        $(document).ready(function() {
+            $('.select2').select2({
+                dir: "rtl",
+                width: '100%',
+                allowClear: true
+            });
+            
+            // إخفاء رأس التكلفة لو كان الموظف ممنوعاً من الرؤية
+            let viewCost = "{{ session.get('view_cost') }}";
+            if(viewCost === "none") {
+                $('#costHeaderTh').hide();
+            }
+        });
+
+        function toggleMenu() {
+            document.getElementById("sideMenu").classList.toggle("active");
+            document.getElementById("menuOverlay").classList.toggle("active");
+        }
+
+        function returnInvoice(invNo) {
+            if(confirm("هل أنت متأكد من استرجاع الفاتورة رقم " + invNo + "؟\n\n(سيتم رد المنتجات للمخزن وحذف الفاتورة وأرباحها نهائياً)")) {
+                $.ajax({
+                    url: '/return_invoice/' + invNo, type: 'POST',
+                    success: function(res) { if(res.success) { alert("تم استرجاع الفاتورة بنجاح وتحديث المخزن."); location.reload(); } }
+                });
+            }
+        }
+
+        let currentInvoiceWAData = ""; 
+        function viewInvoice(invNo) {
+            $.get('/get_invoice_details/' + invNo, function(data) {
+                if(data.error) { alert("عذراً، لم يتم العثور على تفاصيل الفاتورة."); return; }
+                $('#m_inv_no').text(data.invoice_no);
+                $('#m_inv_date').text(data.date.substring(0, 10));
+                $('#m_inv_cust').text(data.customer_name);
+                $('#m_inv_cashier').text(data.created_by);
+                $('#m_inv_total').text(data.total_amount);
+                
+                let tbody = "";
+                currentInvoiceWAData = `🛒 *فاتورة رقم ${data.invoice_no}*\n👤 العميل: ${data.customer_name}\n📅 التاريخ: ${data.date.substring(0, 10)}\n------------------------\n`;
+                
+                data.items.forEach(function(item) {
+                    tbody += `<tr>
+                                <td style="font-weight:bold;">${item.name}</td>
+                                <td>${item.qty}</td>
+                                <td>${item.price} EGP</td>
+                                <td>${item.total} EGP</td>
+                              </tr>`;
+                    currentInvoiceWAData += `▪️ ${item.name} (ك: ${item.qty} × ${item.price}) = ${item.total} EGP\n`;
+                });
+                
+                currentInvoiceWAData += `------------------------\n💰 *الإجمالي الكلي: ${data.total_amount} EGP*\nشكراً لتعاملكم معنا!`;
+                $('#m_inv_items').html(tbody);
+                $('#invoiceModal').fadeIn();
+            });
+        }
+
+        function sendInvoiceWA() {
+            let phone = $('#wa_invoice_phone').val().trim();
+            if(!phone) { alert('يرجى إدخال رقم هاتف العميل أولاً في الخانة المخصصة!'); return; }
+            window.open(`https://wa.me/2${phone}?text=${encodeURIComponent(currentInvoiceWAData)}`, '_blank');
+        }
+
+        function openStockModal() {
+            $('#stockModal').fadeIn();
+            $('#stock_partners_body').html('<tr><td colspan="2">جاري جلب البيانات...</td></tr>');
+            $.get('/api/stock_details', function(data) {
+                let partnersHtml = '';
+                for (const [partner, value] of Object.entries(data.partners_capital)) {
+                    partnersHtml += `<tr><td><b>${partner}</b></td><td style="color:#27ae60; font-weight:bold;">${value.toFixed(2)} EGP</td></tr>`;
+                }
+                $('#stock_partners_body').html(partnersHtml);
+                let productsHtml = '';
+                data.products.forEach(function(item) {
+                    productsHtml += `<tr><td>${item.name}</td><td>${item.qty}</td><td>${item.cost.toFixed(2)}</td>
+                                     <td><b>${(item.qty * item.cost).toFixed(2)}</b></td><td><span style="background:#f39c12; color:#fff; padding:2px 5px; border-radius:4px; font-size:11px;">${item.partner}</span></td></tr>`;
+                });
+                $('#stock_products_body').html(productsHtml);
+            });
+        }
+
+        function openLowStockModal() {
+            let threshold = $('#low_stock_input').val();
+            let viewCost = "{{ session.get('view_cost') }}";
+            if(!threshold || threshold <= 0) threshold = 5;
+            $('#display_threshold').text(threshold);
+            $('#lowStockModal').fadeIn();
+            $('#low_stock_body').html('<tr><td colspan="4">جاري فحص المخزون...</td></tr>');
+            $('#selectAllItems').prop('checked', true);
+
+            $.get('/api/low_stock?threshold=' + threshold, function(data) {
+                let html = '';
+                if(data.length === 0) {
+                    html = '<tr><td colspan="4" style="color:#27ae60; font-weight:bold;">المخزن ممتاز، لا توجد نواقص حالياً! 🎉</td></tr>';
+                } else {
+                    data.forEach(function(item) {
+                        html += `<tr>
+                                    <td><input type="checkbox" class="item-check" data-name="${item.name}" data-qty="${item.qty}" data-cost="${item.cost.toFixed(2)}" checked></td>
+                                    <td style="font-weight:bold;">${item.name}</td>
+                                    <td style="color:#e74c3c; font-weight:bold;">${item.qty}</td>`;
+                        if(viewCost !== "none") {
+                            html += `<td>${item.cost.toFixed(2)}</td>`;
+                        }
+                        html += `</tr>`;
+                    });
+                }
+                $('#low_stock_body').html(html);
+            });
+        }
+
+        $(document).on('change', '#selectAllItems', function() {
+            $('.item-check').prop('checked', this.checked);
+        });
+
+        function getSelectedLowStockData() {
+            let items = [];
+            $('.item-check:checked').each(function() {
+                items.push({ name: $(this).data('name'), qty: $(this).data('qty'), cost: $(this).data('cost') });
+            });
+            let columns = { show_name: $('#col_name').is(':checked'), show_qty: $('#col_qty').is(':checked'), show_cost: $('#col_cost').is(':checked') };
+            return { items: items, columns: columns };
+        }
+
+        function printSelectedLowStock() {
+            let data = getSelectedLowStockData();
+            if(data.items.length === 0) { alert('يرجى تحديد منتج واحد على الأقل للطباعة!'); return; }
+            if(!data.columns.show_name && !data.columns.show_qty && !data.columns.show_cost) { alert('يرجى تحديد عمود واحد على الأقل للعرض!'); return; }
+
+            $('#printDataInput').val(JSON.stringify(data));
+            $('#printForm').submit();
+        }
+
+        function sendSelectedLowStockWA() {
+            let data = getSelectedLowStockData();
+            if(data.items.length === 0) { alert('يرجى تحديد منتج واحد على الأقل للإرسال!'); return; }
+
+            let waText = `⚠️ *طلبية نواقص المخزن*\n------------------------\n`;
+            data.items.forEach(function(item) {
+                let line = "▪️ ";
+                if(data.columns.show_name) line += `${item.name} `;
+                if(data.columns.show_qty) line += `| كمية: ${item.qty} `;
+                if(data.columns.show_cost) line += `| السعر: ${item.cost}`;
+                waText += line + "\n";
+            });
+
+            let phone = $('#wa_lowstock_phone').val().trim();
+            if(!phone) { alert('يرجى إدخال رقم الهاتف أولاً!'); return; }
+            window.open(`https://wa.me/2${phone}?text=${encodeURIComponent(waText)}`, '_blank');
+        }
+    </script>
+</body>
+</html>

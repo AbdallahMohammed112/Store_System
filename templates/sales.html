@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شاشة البيع (POS) - نظام المتجر</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- مكتبات البحث الذكي -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <style>
+        body { font-family: 'Cairo', sans-serif; background-color: #eef2f5; margin: 0; padding: 0; color: #333; }
+        
+        .top-navbar { background-color: #ffffff; padding: 15px 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000;}
+        .nav-right { display: flex; align-items: center; gap: 15px; }
+        .menu-btn { font-size: 24px; background: none; border: none; cursor: pointer; color: #2c3e50; padding: 5px; line-height: 1; }
+        .top-navbar h1 { margin: 0; font-size: 20px; color: #2c3e50; }
+        .user-info { display: flex; align-items: center; font-size: 14px; color: #555; }
+        
+        .side-menu { position: fixed; top: 0; right: -280px; width: 260px; height: 100%; background-color: #2c3e50; color: white; transition: 0.4s ease; z-index: 2000; padding-top: 60px; box-shadow: -2px 0 15px rgba(0,0,0,0.3); }
+        .side-menu.active { right: 0; }
+        .side-menu a { padding: 15px 25px; text-decoration: none; font-size: 16px; color: #ecf0f1; display: block; transition: 0.2s; border-bottom: 1px solid #34495e; }
+        .side-menu a:hover { background-color: #34495e; padding-right: 35px; }
+        .close-menu { position: absolute; top: 15px; left: 20px; font-size: 28px; cursor: pointer; color: white; line-height: 1; }
+        .close-menu:hover { color: #e74c3c; }
+        .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1500; display: none; opacity: 0; transition: 0.4s; }
+        .menu-overlay.active { display: block; opacity: 1; }
+
+        .main-container { padding: 20px; max-width: 1300px; margin: auto; display: flex; gap: 20px; align-items: flex-start; }
+        .controls-section { flex: 2; display: flex; flex-direction: column; gap: 15px; }
+        .receipt-section { flex: 1; display: flex; justify-content: center; }
+        
+        .card { background-color: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); }
+        .section-title { font-size: 16px; font-weight: bold; color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
+        
+        .form-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-end; flex-wrap: wrap; }
+        .form-group { flex: 1; min-width: 180px; display: flex; flex-direction: column; }
+        .form-group label { margin-bottom: 5px; font-size: 13px; font-weight: 600; color: #555; }
+        .form-group input, .form-group select { padding: 10px; border: 1px solid #dcdde1; border-radius: 6px; font-size: 14px; width: 100%; box-sizing: border-box; height: 42px; }
+        .form-group select:disabled { background-color: #f4f6f9; cursor: not-allowed; color: #7f8c8d; }
+        
+        .btn { padding: 10px 15px; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; color: white; transition: 0.3s; }
+        .btn-add { background-color: #2980b9; height: 42px; }
+        .btn-print { background-color: #2c3e50; flex: 1; }
+        .btn-whatsapp { background-color: #25D366; flex: 1; }
+        
+        .table-wrapper { overflow-x: auto; }
+        table.screen-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; min-width: 500px; }
+        table.screen-table th, table.screen-table td { padding: 10px; text-align: center; border-bottom: 1px solid #e1e8ed; font-size: 14px; }
+        table.screen-table th { background-color: #f4f6f9; color: #2c3e50; }
+        .btn-remove { background-color: #e74c3c; color: white; border: none; border-radius: 4px; padding: 5px 8px; cursor: pointer; font-size: 12px; }
+        
+        .total-box { background-color: #f8faff; padding: 15px; border-radius: 8px; text-align: left; border: 1px solid #dcdde1; font-size: 18px; font-weight: bold; color: #2c3e50; display: flex; justify-content: space-between; align-items: center;}
+        
+        .discount-section { background-color: #fff3cd; padding: 10px; border-radius: 6px; display: flex; gap: 10px; align-items: center; margin-bottom: 15px; border: 1px solid #ffe69c; flex-wrap: wrap; }
+        .settings-box { background-color: #e8f4fd; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #bbe1fa; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: bold; color: #c0392b; cursor: pointer; }
+
+        .thermal-receipt {
+            width: 76mm; background-color: #ffffff; padding: 4mm; border: 1px solid #ddd; border-radius: 4px;
+            font-family: 'Cairo', Tahoma, sans-serif; color: #000; box-sizing: border-box; direction: rtl; line-height: 1.25; 
+        }
+        .receipt-header { text-align: center; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid #000; }
+        .receipt-header h2 { margin: 0 0 2px 0; font-size: 16px; font-weight: 700; color: #000; }
+        .receipt-header p { margin: 1px 0; font-size: 11px; color: #000; font-weight: 600; }
+        .receipt-info { margin-bottom: 6px; font-size: 11px; font-weight: 600; border-bottom: 1px solid #000; padding-bottom: 6px; }
+        .receipt-info div { display: flex; justify-content: space-between; margin-bottom: 2px; }
+        .receipt-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; table-layout: fixed; }
+        .receipt-table th { padding: 4px 2px; font-size: 11px; font-weight: 700; color: #000; border-bottom: 1px solid #000; text-align: right; }
+        .receipt-table td { padding: 4px 2px; font-size: 11px; font-weight: 600; border-bottom: none; word-wrap: break-word; }
+        .receipt-table th:nth-child(1), .receipt-table td:nth-child(1) { text-align: right; width: 48%; }
+        .receipt-table th:nth-child(2), .receipt-table td:nth-child(2) { text-align: center; width: 17%; }
+        .receipt-table th:nth-child(3), .receipt-table td:nth-child(3) { text-align: left; width: 35%; }
+        .receipt-totals { border-top: 1px solid #000; padding-top: 6px; margin-bottom: 6px; font-size: 11px; }
+        .receipt-totals div { display: flex; justify-content: space-between; margin-bottom: 2px; font-weight: 700; }
+        .receipt-footer { text-align: center; font-size: 10px; color: #000; font-weight: 600; margin-top: 6px; border-top: 1px solid #000; padding-top: 6px; }
+        .receipt-footer p { margin: 2px 0; }
+
+        .select2-container { width: 100% !important; }
+        .select2-selection { height: 42px !important; border: 1px solid #dcdde1 !important; border-radius: 6px !important; display: flex !important; align-items: center; font-size: 14px; background-color: #fff !important; }
+        .select2-selection__arrow { height: 40px !important; }
+        .select2-search__field { font-family: 'Cairo', sans-serif; text-align: right; direction: rtl; }
+        .select2-results__option { text-align: right; font-size: 14px; font-family: 'Cairo', sans-serif; }
+
+        @media (max-width: 900px) {
+            .main-container { flex-direction: column; padding: 10px; }
+            .controls-section, .receipt-section { width: 100%; flex: none; }
+            .form-row { flex-direction: column; align-items: stretch; }
+            .btn { width: 100%; margin-bottom: 5px; }
+            .btn-add { height: auto; padding: 12px; }
+            .thermal-receipt { margin: 20px auto; width: 100%; max-width: 320px; }
+            .top-navbar h1 { font-size: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+    
+    <!-- استدعاء القائمة الجانبية المستقلة -->
+    {% include 'sidebar.html' %}
+
+    <header class="top-navbar">
+        <div class="nav-right">
+            <button class="menu-btn" onclick="toggleMenu()">☰</button>
+            <h1>نقطة البيع وإصدار الفواتير</h1>
+        </div>
+        <div class="user-info"><span>👤</span>&nbsp;<span>{{ session['username'] }}</span></div>
+    </header>
+
+    <div class="main-container">
+        <div class="controls-section">
+            
+            <div class="card">
+                <h2 class="section-title">👤 بيانات العميل</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>اسم العميل</label>
+                        <input type="text" id="customer_name" placeholder="عميل نقدي" onkeyup="updateReceipt()">
+                    </div>
+                    <div class="form-group">
+                        <label>رقم هاتف الواتساب</label>
+                        <input type="tel" id="customer_phone" placeholder="01xxxxxxxxx">
+                    </div>
+                </div>
+
+                <div class="settings-box">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="allow_negative" style="width: 18px; height: 18px; cursor: pointer;">
+                        🔓 السماح بالبيع برغم نفاد المخزن (أو لبيع منتجات حرة غير مسجلة)
+                    </label>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="section-title">🛒 اختيار أو كتابة منتج جديد</h2>
+                <div class="form-row">
+                    <div class="form-group" style="flex: 2;">
+                        <label>البحث أو كتابة اسم منتج حر</label>
+                        <select id="product_search" class="searchable-select">
+                            <option value="">-- اختر أو اكتب اسم منتج --</option>
+                            {% for p in products %}
+                                <option value="{{ p[1] }}" data-id="{{ p[0] }}" data-price="{{ p[3] }}" data-stock="{{ p[4] }}" data-partner="{{ p[5] if p|length > 5 and p[5] else 'بدون شريك' }}">{{ p[1] }}</option>
+                            {% endfor %}
+                        </select>
+                        <span id="stock_indicator" style="font-size: 12px; color: #2980b9; margin-top: 4px; font-weight: bold;"></span>
+                    </div>
+                    
+                    <input type="hidden" id="current_id">
+                    
+                    <div class="form-group">
+                        <label>الكمية</label>
+                        <input type="number" id="current_qty" value="1" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>سعر البيع</label>
+                        <input type="number" id="current_price" step="0.01">
+                    </div>
+
+                    <!-- حماية التكلفة للصنف الحر: تظهر فقط للمدير/المصرح له -->
+                    {% if session.get('view_cost') == 'all' %}
+                    <div class="form-group" id="cost_price_group" style="display: none;">
+                        <label style="color: #c0392b;">سعر الشراء (لجرد الأرباح)</label>
+                        <input type="number" id="current_cost_price" step="0.01" placeholder="تكلفة القطعة">
+                    </div>
+                    {% else %}
+                    <!-- حقل مخفي لمنع كشف التكلفة أو التلاعب بها -->
+                    <input type="hidden" id="current_cost_price" value="0">
+                    {% endif %}
+
+                    <div class="form-group">
+                        <label>شريك الصنف</label>
+                        <select id="item_partner">
+                            <option value="بدون شريك">-- بدون شريك --</option>
+                            {% for partner in partners %}
+                                <option value="{{ partner[1] }}">{{ partner[1] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button class="btn btn-add" onclick="addToCart()">إضافة ➕</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="section-title">📄 المنتجات المضافة للفاتورة</h2>
+                <div class="table-wrapper">
+                    <table class="screen-table">
+                        <thead>
+                            <tr>
+                                <th>المنتج</th>
+                                <th>السعر</th>
+                                <th>الكمية</th>
+                                <th>الشريك المسؤول</th>
+                                <th>الإجمالي</th>
+                                <th>إزالة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cart_body"></tbody>
+                    </table>
+                </div>
+                
+                <div class="discount-section">
+                    <strong style="color: #d35400; font-size: 14px;">📉 إضافة خصم: </strong>
+                    <input type="number" id="discount_val" placeholder="قيمة الخصم" style="padding: 6px; width: 100px; border: 1px solid #ccc; border-radius: 4px; height: auto;" onkeyup="renderCart()" min="0">
+                    <select id="discount_type" style="padding: 6px; border: 1px solid #ccc; border-radius: 4px; height: auto;" onchange="renderCart()">
+                        <option value="amount">مبلغ ثابت (EGP)</option>
+                        <option value="percent">نسبة مئوية (%)</option>
+                    </select>
+                </div>
+
+                <div class="total-box">
+                    <span>الإجمالي المطلوب:</span>
+                    <span style="color: #27ae60;"><span id="screen_total_amount">0.00</span> EGP</span>
+                </div>
+
+                <div class="form-row" style="margin-top: 15px; flex-direction: row; flex-wrap: wrap;">
+                    <!-- حماية أزرار الإصدار بصلاحية الإضافة p_sales_a -->
+                    {% if session.get('p_sales_a') %}
+                        <button class="btn btn-print" onclick="printReceipt()">🖨️ طباعة وحفظ الفاتورة</button>
+                        <button class="btn btn-whatsapp" onclick="sendWhatsApp()">💬 واتساب</button>
+                    {% else %}
+                        <button class="btn btn-print" style="background-color: #95a5a6; cursor: not-allowed;" disabled>🖨️ غير مصرح بإصدار الفواتير ❌</button>
+                    {% endif %}
+                    <button class="btn" style="background-color: #e74c3c;" onclick="clearCart()">🗑️ فاتورة جديدة</button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="receipt-section">
+            <div class="thermal-receipt" id="printable_receipt">
+                <div class="receipt-header">
+                    <h2>{{ store.name }}</h2>
+                    <p>هاتف: {{ store.phone }}</p>
+                    <p>فرع: {{ store.branch }}</p>
+                </div>
+                
+                <div class="receipt-info">
+                    <div><span>تاريخ:</span> <span id="r_date"></span></div>
+                    <div><span>العميل:</span> <span id="r_customer">عميل نقدي</span></div>
+                </div>
+                
+                <table class="receipt-table">
+                    <thead>
+                        <tr>
+                            <th>الصنف</th>
+                            <th>ك</th>
+                            <th>القيمة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="r_items"></tbody>
+                </table>
+                
+                <div class="receipt-totals">
+                    <div id="r_subtotal_row" style="display: none; color: #555;">
+                        <span>الإجمالي:</span> <span><span id="r_subtotal">0.00</span></span>
+                    </div>
+                    <div id="r_discount_row" style="display: none; color: #e74c3c;">
+                        <span>الخصم:</span> <span>-<span id="r_discount">0.00</span></span>
+                    </div>
+                    <div>
+                        <span>الصافي المطلوب:</span> <span><span id="r_total">0.00</span> EGP</span>
+                    </div>
+                </div>
+                
+                <div class="receipt-footer">
+                    <p>{{ store.footer }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById("sideMenu").classList.toggle("active");
+            document.getElementById("menuOverlay").classList.toggle("active");
+        }
+
+        document.getElementById('r_date').innerText = new Date().toLocaleDateString('ar-EG');
+
+        let cart = []; 
+        let currentSubtotal = 0;
+        let currentDiscount = 0;
+        let currentNetTotal = 0;
+
+        $(document).ready(function() {
+            $('.searchable-select').select2({
+                tags: true, 
+                placeholder: "اختر منتج أو اكتب صنف حر...",
+                allowClear: true,
+                language: {
+                    noResults: function () {
+                        return "اضغط Enter لإضافة هذا النص كمنتج حر";
+                    }
+                }
+            });
+
+            $('#product_search').on('change', function() {
+                loadProductPrice();
+            });
+        });
+
+        function loadProductPrice() {
+            let selectElem = document.getElementById("product_search");
+            let partnerSelect = document.getElementById("item_partner");
+            let selectedOption = selectElem.options[selectElem.selectedIndex];
+            
+            let costGroup = document.getElementById("cost_price_group"); 
+            
+            if (selectedOption && selectedOption.hasAttribute("data-price")) {
+                document.getElementById("current_price").value = selectedOption.getAttribute("data-price");
+                document.getElementById("current_id").value = selectedOption.getAttribute("data-id");
+                
+                let stock = selectedOption.getAttribute("data-stock");
+                let partner = selectedOption.getAttribute("data-partner") || "بدون شريك";
+                
+                document.getElementById("stock_indicator").innerText = `📦 الكمية المتاحة: ${stock} | السعر: ${selectedOption.getAttribute("data-price")} | الشريك: ${partner}`;
+                
+                partnerSelect.value = partner;
+                partnerSelect.disabled = true; 
+                
+                if (costGroup) costGroup.style.display = "none";
+                let cpInput = document.getElementById("current_cost_price");
+                if(cpInput && cpInput.type !== "hidden") cpInput.value = "";
+
+            } 
+            else if (selectElem.value !== "") {
+                document.getElementById("current_price").value = "";
+                document.getElementById("current_id").value = "";
+                document.getElementById("stock_indicator").innerText = "⚠️ صنف حر (غير مسجل). يرجى إدخال السعر والشريك وتكلفة الشراء.";
+                
+                partnerSelect.value = "بدون شريك";
+                partnerSelect.disabled = false;
+                
+                if (costGroup) costGroup.style.display = "flex";
+            } 
+            else {
+                document.getElementById("current_price").value = "";
+                document.getElementById("current_id").value = "";
+                document.getElementById("stock_indicator").innerText = "";
+                
+                partnerSelect.selectedIndex = 0;
+                partnerSelect.disabled = false;
+                
+                if (costGroup) costGroup.style.display = "none";
+                let cpInput = document.getElementById("current_cost_price");
+                if(cpInput && cpInput.type !== "hidden") cpInput.value = "";
+            }
+        }
+
+        function updateReceipt() {
+            let name = document.getElementById("customer_name").value;
+            document.getElementById("r_customer").innerText = name ? name : "عميل نقدي";
+        }
+
+        function addToCart() {
+            let name = document.getElementById("product_search").value;
+            let id = document.getElementById("current_id").value;
+            let price = parseFloat(document.getElementById("current_price").value);
+            let qty = parseInt(document.getElementById("current_qty").value);
+            let partner = document.getElementById("item_partner").value;
+            let allowNegative = document.getElementById("allow_negative").checked;
+            
+            let costPriceElem = document.getElementById("current_cost_price");
+            let costPrice = costPriceElem ? parseFloat(costPriceElem.value) : 0;
+            
+            if (!id && isNaN(costPrice)) { costPrice = 0; }
+            
+            if (!name || isNaN(price)) { 
+                alert("يرجى كتابة أو اختيار منتج صحيح وتحديد سعر البيع!"); 
+                return; 
+            }
+
+            if (!id && !allowNegative) {
+                alert("لإضافة أصناف حرة غير مسجلة بالمخزن، يجب تفعيل علامة الصح على خيار (السماح بالبيع برغم نفاد المخزن).");
+                return;
+            }
+            
+            cart.push({ 
+                id: id ? parseInt(id) : null, 
+                name: name, 
+                price: price, 
+                cost_price: costPrice,
+                qty: qty, 
+                partner: partner 
+            });
+            
+            $('#product_search').val(null).trigger('change');
+            document.getElementById("current_price").value = "";
+            document.getElementById("current_id").value = "";
+            document.getElementById("current_qty").value = 1;
+            document.getElementById("stock_indicator").innerText = "";
+            document.getElementById("item_partner").selectedIndex = 0;
+            document.getElementById("item_partner").disabled = false; 
+            
+            let costGroup = document.getElementById("cost_price_group");
+            if (costGroup) costGroup.style.display = "none";
+            if (costPriceElem && costPriceElem.type !== "hidden") costPriceElem.value = "";
+            
+            renderCart();
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            renderCart();
+        }
+
+        function clearCart() {
+            if(confirm("هل تريد مسح الفاتورة والبدء من جديد؟")) {
+                cart = [];
+                document.getElementById("customer_name").value = "";
+                document.getElementById("customer_phone").value = "";
+                document.getElementById("discount_val").value = "";
+                document.getElementById("allow_negative").checked = false;
+                $('#product_search').val(null).trigger('change');
+                document.getElementById("item_partner").disabled = false;
+                
+                let costGroup = document.getElementById("cost_price_group");
+                if (costGroup) costGroup.style.display = "none";
+                
+                updateReceipt();
+                renderCart();
+            }
+        }
+
+        function renderCart() {
+            let cartBody = document.getElementById("cart_body");
+            let rItems = document.getElementById("r_items");
+            currentSubtotal = 0;
+            
+            cartBody.innerHTML = "";
+            rItems.innerHTML = "";
+            
+            cart.forEach((item, index) => {
+                let itemTotal = item.price * item.qty;
+                currentSubtotal += itemTotal;
+                
+                cartBody.innerHTML += `
+                    <tr>
+                        <td>${item.name}</td>
+                        <td>${item.price.toFixed(2)}</td>
+                        <td>${item.qty}</td>
+                        <td style="color: #2980b9; font-weight: bold;">${item.partner}</td>
+                        <td>${itemTotal.toFixed(2)}</td>
+                        <td><button class="btn-remove" onclick="removeFromCart(${index})">✖</button></td>
+                    </tr>
+                `;
+                
+                rItems.innerHTML += `
+                    <tr>
+                        <td>${item.name}</td>
+                        <td>${item.qty}</td>
+                        <td>${itemTotal.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+
+            let discountInput = parseFloat(document.getElementById("discount_val").value) || 0;
+            let discountType = document.getElementById("discount_type").value;
+            currentDiscount = 0;
+
+            if(discountInput > 0 && currentSubtotal > 0) {
+                if(discountType === "percent") {
+                    currentDiscount = currentSubtotal * (discountInput / 100);
+                } else {
+                    currentDiscount = discountInput;
+                }
+            }
+
+            if(currentDiscount > currentSubtotal) currentDiscount = currentSubtotal;
+
+            currentNetTotal = currentSubtotal - currentDiscount;
+
+            document.getElementById("screen_total_amount").innerText = currentNetTotal.toFixed(2);
+            document.getElementById("r_total").innerText = currentNetTotal.toFixed(2);
+
+            if(currentDiscount > 0) {
+                document.getElementById("r_subtotal_row").style.display = "flex";
+                document.getElementById("r_discount_row").style.display = "flex";
+                document.getElementById("r_subtotal").innerText = currentSubtotal.toFixed(2) + " EGP";
+                document.getElementById("r_discount").innerText = currentDiscount.toFixed(2) + " EGP";
+            } else {
+                document.getElementById("r_subtotal_row").style.display = "none";
+                document.getElementById("r_discount_row").style.display = "none";
+            }
+        }
+
+        // ==========================================
+        // الدالة دي هي اللي اتعدلت للطباعة المخفية
+        // ==========================================
+        function printReceipt() {
+            if (cart.length === 0) { alert("الفاتورة فارغة!"); return; }
+
+            let customerName = document.getElementById("customer_name").value || "عميل نقدي";
+            let allowNegative = document.getElementById("allow_negative").checked;
+
+            let payload = {
+                customer_name: customerName,
+                allow_negative: allowNegative,
+                items: cart,
+                subtotal: currentSubtotal,
+                discount: currentDiscount,
+                net_total: currentNetTotal
+            };
+
+            fetch('/print_receipt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(err => { throw new Error(err); });
+                }
+                return response.text();
+            })
+            .then(html => {
+                // إنشاء شاشة وهمية (Iframe) للطباعة في الخلفية
+                let printFrame = document.createElement('iframe');
+                printFrame.style.display = 'none';
+                document.body.appendChild(printFrame);
+                
+                let frameDoc = printFrame.contentWindow.document;
+                frameDoc.open();
+                frameDoc.write(html);
+                frameDoc.close();
+
+                printFrame.onload = function() {
+                    printFrame.contentWindow.focus();
+                    printFrame.contentWindow.print();
+                    
+                    setTimeout(() => {
+                        document.body.removeChild(printFrame);
+                    }, 5000);
+                };
+                
+                // تفريغ سلة المشتريات فورا للعميل الجديد
+                cart = [];
+                document.getElementById("customer_name").value = "";
+                document.getElementById("customer_phone").value = "";
+                document.getElementById("discount_val").value = "";
+                document.getElementById("allow_negative").checked = false;
+                $('#product_search').val(null).trigger('change');
+                document.getElementById("item_partner").disabled = false;
+                
+                let costGroup = document.getElementById("cost_price_group");
+                if (costGroup) costGroup.style.display = "none";
+                
+                updateReceipt();
+                renderCart();
+            })
+            .catch(err => {
+                alert(err.message || "حدث خطأ أثناء الطباعة!");
+            });
+        }
+
+        function sendWhatsApp() {
+            let phone = document.getElementById("customer_phone").value;
+            if (!phone) { alert("يرجى كتابة رقم هاتف العميل لإرسال الواتساب!"); return; }
+            if (cart.length === 0) { alert("الفاتورة فارغة!"); return; }
+            
+            let customerName = document.getElementById("customer_name").value || "عميل نقدي";
+            
+            let msg = `🛒 *فاتورة مبيعات - ${"{{ store.name }}"}*\n`;
+            msg += `--------------------------------\n`;
+            msg += `👤 العميل: ${customerName}\n`;
+            msg += `📅 التاريخ: ${new Date().toLocaleDateString('ar-EG')}\n`;
+            msg += `--------------------------------\n`;
+            
+            cart.forEach(item => {
+                let itemTotal = item.price * item.qty;
+                msg += `▪️ *${item.name}*\n`;
+                msg += `   الكمية: ${item.qty} × السعر: ${item.price.toFixed(2)} = *${itemTotal.toFixed(2)} EGP*\n`;
+            });
+            
+            msg += `--------------------------------\n`;
+
+            if(currentDiscount > 0) {
+                msg += `🏷️ الإجمالي قبل الخصم: ${currentSubtotal.toFixed(2)} EGP\n`;
+                msg += `📉 قيمة الخصم: -${currentDiscount.toFixed(2)} EGP\n`;
+            }
+            
+            msg += `💰 *الإجمالي الصافي: ${currentNetTotal.toFixed(2)} EGP*\n`;
+            msg += `--------------------------------\n`;
+            msg += `🙏 شكراً لتعاملكم معنا!`;
+
+            window.open(`https://wa.me/2${phone}?text=${encodeURIComponent(msg)}`, 'whatsapp_pc_window');
+        }
+    </script>
+</body>
+</html>

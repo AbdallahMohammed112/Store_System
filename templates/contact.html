@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الدعم الفني ودليل النظام - FlashCashier</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Cairo', sans-serif; background-color: #f8f9fa; margin: 0; padding: 0; color: #2d3436; box-sizing: border-box; }
+        *, *:before, *:after { box-sizing: inherit; }
+
+        /* القائمة الجانبية */
+        .side-menu { position: fixed; top: 0; right: -280px; width: 260px; height: 100%; background-color: #2c3e50; color: white; transition: 0.4s ease; z-index: 2000; padding-top: 60px; box-shadow: -2px 0 15px rgba(0,0,0,0.3); }
+        .side-menu.active { right: 0; }
+        .side-menu a { padding: 14px 22px; text-decoration: none; font-size: 15px; color: #ecf0f1; display: block; transition: 0.2s; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .side-menu a:hover { background-color: rgba(255,255,255,0.1); padding-right: 30px; border-right: 4px solid #00cec9; }
+        .close-menu { position: absolute; top: 15px; left: 20px; font-size: 26px; cursor: pointer; color: white; line-height: 1; }
+        .close-menu:hover { color: #ff7675; }
+        .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1500; display: none; opacity: 0; transition: 0.4s; }
+        .menu-overlay.active { display: block; opacity: 1; }
+
+        /* الشريط العلوي */
+        .top-navbar { background-color: #ffffff; padding: 15px 20px; box-shadow: 0 2px 15px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        .nav-right { display: flex; align-items: center; gap: 12px; }
+        .menu-btn { font-size: 22px; background: none; border: none; cursor: pointer; color: #2d3436; padding: 5px; line-height: 1; }
+        .top-navbar h1 { margin: 0; font-size: 18px; color: #2d3436; font-weight: 800; }
+        
+        /* تصميم الهيدر العصري */
+        .header-section { background: url('https://www.transparenttextures.com/patterns/cubes.png'), linear-gradient(135deg, #0984e3, #00cec9); padding: 60px 20px; text-align: center; color: white; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; box-shadow: 0 10px 20px rgba(0, 206, 201, 0.15); }
+        .header-section h2 { font-size: 32px; margin: 0 0 10px 0; font-weight: 800; }
+        .header-section p { font-size: 16px; margin: 0; opacity: 0.9; }
+
+        /* كروت التواصل */
+        .cards-container { max-width: 900px; margin: -30px auto 30px auto; padding: 0 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; position: relative; z-index: 10; }
+        .info-card { background: #fff; padding: 30px 20px; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.05); text-align: center; transition: 0.3s; border-bottom: 4px solid transparent; }
+        .info-card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.08); }
+        .info-card.wa:hover { border-bottom-color: #00b894; }
+        .info-card.ph:hover { border-bottom-color: #0984e3; }
+        
+        .icon-wrapper { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto; font-size: 30px; }
+        .wa-icon { background: #e8f8f5; color: #00b894; }
+        .ph-icon { background: #e3f2fd; color: #0984e3; }
+        
+        .info-card h3 { font-size: 18px; color: #2d3436; margin: 0 0 10px 0; }
+        .info-card p { font-size: 14px; color: #636e72; margin: 0 0 20px 0; line-height: 1.5; }
+        
+        .btn { display: inline-block; padding: 10px 25px; border-radius: 25px; text-decoration: none; font-weight: bold; font-size: 14px; transition: 0.3s; }
+        .btn-wa { background: #00b894; color: white; box-shadow: 0 4px 15px rgba(0, 184, 148, 0.3); }
+        .btn-wa:hover { background: #00a885; box-shadow: 0 6px 20px rgba(0, 184, 148, 0.4); }
+        .btn-ph { background: #0984e3; color: white; box-shadow: 0 4px 15px rgba(9, 132, 227, 0.3); }
+        .btn-ph:hover { background: #0773c5; box-shadow: 0 6px 20px rgba(9, 132, 227, 0.4); }
+
+        /* دليل النظام الشامل (الأكورديون) */
+        .guide-container { max-width: 900px; margin: 0 auto 50px auto; padding: 0 20px; }
+        .guide-section { background: #fff; padding: 30px; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.05); }
+        .section-title { font-size: 20px; color: #2d3436; margin-top: 0; margin-bottom: 25px; text-align: center; font-weight: 800; border-bottom: 2px dashed #eee; padding-bottom: 15px; }
+        
+        .accordion { border: 1px solid #dfe6e9; border-radius: 10px; overflow: hidden; margin-bottom: 12px; transition: 0.3s; }
+        .accordion-header { background-color: #f8f9fa; padding: 16px 20px; font-weight: 700; color: #2d3436; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; font-size: 15px; }
+        .accordion-header:hover { background-color: #e3f2fd; color: #0984e3; }
+        .accordion-header.active { background-color: #0984e3; color: white; }
+        .accordion-icon { font-size: 18px; transition: transform 0.3s; }
+        .accordion-header.active .accordion-icon { transform: rotate(180deg); }
+        
+        .accordion-content { padding: 0 20px; max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out, padding 0.4s ease-out; background-color: #fff; }
+        .accordion-content p { color: #636e72; line-height: 1.7; font-size: 14px; margin: 15px 0; font-weight: 600; }
+        .accordion-content ul { padding-right: 20px; margin-bottom: 15px; }
+        .accordion-content li { margin-bottom: 8px; font-size: 14px; color: #636e72; line-height: 1.6; }
+
+        /* ويدجيت الشات المباشر */
+        .chat-widget-btn { position: fixed; bottom: 30px; left: 30px; width: 60px; height: 60px; background: linear-gradient(135deg, #0984e3, #00cec9); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; color: white; cursor: pointer; box-shadow: 0 8px 20px rgba(9, 132, 227, 0.4); transition: 0.3s; z-index: 9999; animation: bounce 2s infinite; }
+        .chat-widget-btn:hover { transform: scale(1.1); }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-10px);} 60% {transform: translateY(-5px);} }
+
+        .chat-box { position: fixed; bottom: 100px; left: 30px; width: 320px; background: #fff; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 10000; display: none; flex-direction: column; overflow: hidden; border: 1px solid #eee; opacity: 0; transform: translateY(20px); transition: all 0.3s ease; }
+        .chat-box.show { display: flex; opacity: 1; transform: translateY(0); }
+        
+        .chat-header { background: linear-gradient(135deg, #0984e3, #00cec9); padding: 15px; display: flex; align-items: center; gap: 10px; color: white; }
+        .chat-avatar { width: 40px; height: 40px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .chat-title { flex: 1; }
+        .chat-title strong { display: block; font-size: 15px; }
+        .chat-title span { font-size: 11px; opacity: 0.8; }
+        .close-chat { font-size: 20px; cursor: pointer; padding: 0 5px; }
+        
+        .chat-body { padding: 20px; background: #f8f9fa; min-height: 200px; max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .message { max-width: 85%; padding: 10px 15px; border-radius: 15px; font-size: 13px; line-height: 1.5; }
+        .msg-received { background: #fff; border: 1px solid #eee; border-bottom-right-radius: 2px; align-self: flex-start; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        
+        .chat-footer { padding: 15px; background: #fff; border-top: 1px solid #eee; display: flex; gap: 10px; }
+        .chat-footer input { flex: 1; padding: 10px 15px; border: 1px solid #dfe6e9; border-radius: 20px; font-family: 'Cairo'; font-size: 13px; outline: none; transition: 0.3s; }
+        .chat-footer input:focus { border-color: #0984e3; }
+        .chat-footer button { background: #0984e3; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; font-size: 16px; }
+        .chat-footer button:hover { background: #00cec9; }
+
+        @media (max-width: 768px) {
+            .chat-widget-btn { bottom: 20px; left: 20px; width: 55px; height: 55px; }
+            .chat-box { bottom: 90px; left: 20px; width: calc(100% - 40px); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- القائمة الجانبية -->
+    {% include 'sidebar.html' %}
+
+    <!-- الشريط العلوي -->
+    <header class="top-navbar">
+        <div class="nav-right">
+            <button class="menu-btn" onclick="toggleMenu()">☰</button>
+            <h1>الدعم الفني ودليل النظام</h1>
+        </div>
+    </header>
+
+    <!-- الهيدر الجمالي -->
+    <div class="header-section">
+        <h2>كيف يمكننا مساعدتك اليوم؟</h2>
+        <p>فريق FlashCashier متواجد دائماً لدعمك وتطوير أعمالك</p>
+    </div>
+
+    <!-- كروت التواصل المباشر -->
+    <div class="cards-container">
+        <div class="info-card wa">
+            <div class="icon-wrapper wa-icon">💬</div>
+            <h3>واتساب الدعم الفني</h3>
+            <p>أرسل لنا استفسارك أو مشكلتك عبر الواتساب وسنقوم بالرد عليك في أسرع وقت ممكن.</p>
+            <a href="https://wa.me/201091443474" class="btn btn-wa" target="_blank">تواصل الآن</a>
+        </div>
+
+        <div class="info-card ph">
+            <div class="icon-wrapper ph-icon">📞</div>
+            <h3>الاتصال المباشر</h3>
+            <p>للحالات العاجلة أو لطلب ترقية باقتك، يمكنك الاتصال بنا مباشرة على رقم الإدارة.</p>
+            <a href="tel:01091443474" class="btn btn-ph">01091443474</a>
+        </div>
+    </div>
+
+    <!-- دليل النظام الشامل (الأكورديون) -->
+    <div class="guide-container">
+        <div class="guide-section">
+            <h3 class="section-title">💡 دليلك الشامل لاستخدام FlashCashier</h3>
+
+            <!-- نقطة البيع -->
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>💻 نقطة البيع (POS) وإصدار الفواتير</span>
+                    <span class="accordion-icon">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <p>شاشة البيع مصممة لتكون سريعة جداً ومرنة لتناسب ضغط العمل:</p>
+                    <ul>
+                        <li>إضافة المنتجات للفاتورة بضغطة زر وتعديل الكميات بكل سهولة.</li>
+                        <li>إمكانية إضافة العميل باسمه ورقمه أو البيع كـ "عميل نقدي".</li>
+                        <li>دعم الخصومات وطباعة ريسيت حراري (80mm) منظم واحترافي.</li>
+                        <li>خصم تلقائي للكمية المباعة من المخزن وحساب الأرباح بدقة.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- المخزون -->
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>📦 إدارة المنتجات والمخزن</span>
+                    <span class="accordion-icon">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <p>المخزن هو قلب مشروعك، ونحن جعلنا إدارته أسهل ما يمكن:</p>
+                    <ul>
+                        <li>إضافة منتجات وتحديد أسعار التكلفة والبيع بدقة.</li>
+                        <li>ربط المنتجات بشركاء للحصول على تقارير فصل أرباح أوتوماتيكية.</li>
+                        <li>إمكانية إخفاء سعر التكلفة عن الموظفين لضمان سرية أرباحك.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- المشتريات -->
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>🛒 نظام المشتريات والتوريد</span>
+                    <span class="accordion-icon">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <p>راقب بضاعتك الواردة وتكاليفها خطوة بخطوة:</p>
+                    <ul>
+                        <li>تسجيل فواتير المشتريات باسم المورد وتفاصيل التكلفة.</li>
+                        <li>تسعير المنتجات وترحيلها مباشرة لتزيد كميات المخزن بضغطة زر.</li>
+                        <li>الاحتفاظ بسجل كامل للمشتريات لمراجعته في أي وقت.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- الشركاء -->
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>🤝 حسابات وأرباح الشركاء (الممولين)</span>
+                    <span class="accordion-icon">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <p>حل جذري لأزمة حسابات الشركاء المعقدة:</p>
+                    <ul>
+                        <li>تحديد نسبة ربح الشريك (مثال: نصف، ثلث، ربع).</li>
+                        <li>فصل تلقائي لربح الشريك بمجرد بيع أي منتج مرتبط به.</li>
+                        <li>تسجيل مسحوبات نقدية للشريك ومتابعة الرصيد المستحق بدقة.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- التقارير -->
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>📊 التقارير والإحصائيات الشاملة</span>
+                    <span class="accordion-icon">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <p>البيانات التي تحتاجها لاتخاذ قراراتك الإدارية:</p>
+                    <ul>
+                        <li>معرفة إجمالي المبيعات، المصروفات، وصافي الربح خلال أي فترة زمنية.</li>
+                        <li>تقرير رأس المال وقيمة البضاعة المتوفرة في المخزن.</li>
+                        <li>تنبيهات تلقائية بالمنتجات التي أوشكت على النفاذ (النواقص).</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- الإعدادات -->
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>⚙️ الإعدادات وإدارة الموظفين</span>
+                    <span class="accordion-icon">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <p>سيطرة كاملة على تفاصيل نظامك وموظفيك:</p>
+                    <ul>
+                        <li>تحديث بيانات الفاتورة (اسم المتجر، الرقم، رسالة الترحيب).</li>
+                        <li>إنشاء حسابات للموظفين بصلاحيات مفصلة (عرض، إضافة، تعديل، حذف).</li>
+                        <li>حماية معلوماتك وتقاريرك السرية بإخفائها عن الموظفين غير المصرح لهم.</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ويدجيت الشات المباشر (Live Chat) -->
+    <div class="chat-widget-btn" onclick="toggleChat()">💬</div>
+
+    <div class="chat-box" id="chatBox">
+        <div class="chat-header">
+            <div class="chat-avatar">👨‍💻</div>
+            <div class="chat-title">
+                <strong>فريق FlashCashier</strong>
+                <span>متصل الآن 🟢</span>
+            </div>
+            <div class="close-chat" onclick="toggleChat()">✖</div>
+        </div>
+        
+        <div class="chat-body" id="chatBody">
+            <div class="message msg-received">
+                مرحباً بك يا <strong>{{ session.get('username', 'عميلنا العزيز') }}</strong> 👋<br>
+                أنا المساعد الذكي، كيف يمكنني مساعدتك اليوم؟
+            </div>
+        </div>
+        
+        <div class="chat-footer">
+            <input type="text" id="chatInput" placeholder="اكتب استفسارك هنا..." onkeypress="handleEnter(event)">
+            <button onclick="sendChat()">➤</button>
+        </div>
+    </div>
+
+    <script>
+        // فتح وإغلاق القائمة الجانبية
+        function toggleMenu() {
+            let sideMenu = document.getElementById("sideMenu");
+            let menuOverlay = document.getElementById("menuOverlay");
+            if (sideMenu) sideMenu.classList.toggle("active");
+            if (menuOverlay) menuOverlay.classList.toggle("active");
+        }
+
+        // الأكورديون (دليل النظام)
+        function toggleAccordion(header) {
+            header.classList.toggle("active");
+            let content = header.nextElementSibling;
+            
+            if (content.style.maxHeight) {
+                content.style.maxHeight = null;
+                content.style.padding = "0 20px";
+            } else {
+                content.style.maxHeight = content.scrollHeight + 40 + "px";
+                content.style.padding = "10px 20px";
+            }
+        }
+
+        // نافذة الشات العائم
+        function toggleChat() {
+            let chatBox = document.getElementById("chatBox");
+            if (chatBox.classList.contains("show")) {
+                chatBox.classList.remove("show");
+                setTimeout(() => { chatBox.style.display = "none"; }, 300);
+            } else {
+                chatBox.style.display = "flex";
+                setTimeout(() => { chatBox.classList.add("show"); }, 10);
+                document.getElementById("chatInput").focus();
+            }
+        }
+
+        function handleEnter(event) {
+            if (event.key === "Enter") {
+                sendChat();
+            }
+        }
+
+        function sendChat() {
+            let inputField = document.getElementById("chatInput");
+            let message = inputField.value.trim();
+            
+            if (message !== "") {
+                let finalMessage = `مرحباً دعم FlashCashier،%0A%0A${encodeURIComponent(message)}`;
+                let whatsappUrl = `https://wa.me/201091443474?text=${finalMessage}`;
+                
+                inputField.value = "";
+                
+                let chatBody = document.getElementById("chatBody");
+                chatBody.innerHTML += `
+                    <div class="message" style="background:#0984e3; color:white; align-self:flex-end; border-bottom-left-radius:2px;">
+                        ${message}
+                    </div>
+                    <div class="message msg-received" style="margin-top:10px;">
+                        جاري تحويلك للمحادثة المباشرة مع الدعم الفني... ⏳
+                    </div>
+                `;
+                
+                chatBody.scrollTop = chatBody.scrollHeight;
+
+                setTimeout(() => {
+                    window.open(whatsappUrl, '_blank');
+                    toggleChat();
+                }, 1200);
+            }
+        }
+    </script>
+</body>
+</html>

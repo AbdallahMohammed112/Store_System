@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>فاتورة مبيعات #{{ invoice_no }}</title>
-    <!-- تم استخدام الوزن الخفيف 400 لمنع تداخل الحروف في الطباعة الحرارية -->
+    <!-- تم جلب وزن الخط 400 (الخفيف) لمنع تداخل الحروف في الطباعة الحرارية من الموبايل -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; background: #eef2f5; }
         
         .ticket {
-            width: 72mm; /* مساحة آمنة جداً لمنع القص من الحواف */
+            width: 72mm; 
             max-width: 100%;
             margin: 10px auto; 
             padding: 2mm; 
@@ -25,7 +25,7 @@
         }
 
         .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 5px; margin-bottom: 5px; }
-        .store-logo { max-width: 60%; max-height: 70px; object-fit: contain; margin-bottom: 5px; filter: grayscale(100%); }
+        .store-logo { max-width: 60%; max-height: 70px; object-fit: contain; margin-bottom: 5px; filter: grayscale(100%); /* تحويل اللوجو لأبيض وأسود للطباعة الحرارية */ }
         .header h2 { margin: 0; font-size: 16px; font-weight: 700; }
         .header p { margin: 2px 0; font-size: 12px; }
         
@@ -33,7 +33,7 @@
         .info div { display: flex; justify-content: space-between; margin-bottom: 3px; }
         
         table { width: 100%; border-collapse: collapse; margin-bottom: 5px; table-layout: fixed; }
-        th { border-bottom: 1px solid #000; padding: 4px 2px; font-size: 11px; font-weight: 600; }
+        th { border-bottom: 1px solid #000; padding: 4px 2px; font-size: 11px; font-weight: 600; } /* استخدام وزن 600 بدل Bold لتخفيف سماكة الحبر */
         td { padding: 4px 2px; font-size: 11px; word-wrap: break-word; overflow-wrap: break-word; }
         th:first-child, td:first-child { text-align: right; width: 45%; }
         th:last-child, td:last-child { text-align: left; width: 35%; }
@@ -50,6 +50,7 @@
         .btn { padding: 12px; border: none; cursor: pointer; font-family: 'Cairo'; border-radius: 6px; font-weight: bold; font-size: 14px; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
         .btn-print { background: #2c3e50; color: #fff; }
         .btn-whatsapp { background: #25D366; color: #fff; }
+        .btn:active { transform: scale(0.98); }
         
         @page { size: 80mm auto; margin: 0; }
         @media print { 
@@ -59,13 +60,15 @@
         }
     </style>
 </head>
-<body>
+<body onload="setTimeout(() => { window.print(); }, 500);">
     
     <div class="ticket">
         <div class="header">
+            <!-- عرض اللوجو إن وجد -->
             {% if store.logo %}
                 <img src="{{ url_for('static', filename='uploads/' + store.logo) }}" alt="Logo" class="store-logo">
             {% endif %}
+            
             <h2>{{ store.name }}</h2>
             <p>هاتف: {{ store.phone }}</p>
             {% if store.branch %}
@@ -119,35 +122,22 @@
             <p>{{ store.footer }}</p>
         </div>
         
+        <!-- جملة لدفع الورقة للخارج -->
         <div class="print-end">
             - بداية الفاتورة -
         </div>
     </div>
 
-    <!-- أزرار الإجراءات في حالة إلغاء الطباعة التلقائية -->
+    <!-- أزرار الإجراءات (لا تظهر في الطباعة) -->
     <div class="actions">
         <button class="btn btn-print" onclick="window.print()">🖨️ طباعة الفاتورة الآن</button>
         <button class="btn btn-whatsapp" onclick="sendWhatsApp()">💬 إرسال الفاتورة للعميل</button>
-        <button class="btn" style="background: #e74c3c; color: white;" onclick="window.history.back()">🔙 العودة للكاشير</button>
     </div>
 
+    <!-- سكربت توليد رسالة الواتساب -->
     <script>
-        // 1. تشغيل الطباعة أوتوماتيك أول ما الصفحة تفتح
-        window.onload = function() {
-            setTimeout(() => { 
-                window.print(); 
-            }, 500); // تأخير نصف ثانية لضمان تحميل الخطوط
-        };
-
-        // 2. السحر هنا: العودة للكاشير أوتوماتيك بمجرد قفل شاشة الطباعة في الموبايل
-        window.onafterprint = function() {
-            window.history.back(); 
-            // ملحوظة: لو عاوز توجهه لصفحة معينة بدل الرجوع خطوة، استخدم السطر ده بدل اللي فوق:
-            // window.location.href = '/pos'; 
-        };
-
-        // 3. كود الواتساب
         function sendWhatsApp() {
+            // تجميع تفاصيل الفاتورة في رسالة نصية منسقة
             let msg = `*فـاتـورة مـبـيـعـات* 🧾\n`;
             msg += `------------------------\n`;
             msg += `المتجر: *{{ store.name }}*\n`;
@@ -156,6 +146,7 @@
             msg += `العميل: {{ customer_name }}\n`;
             msg += `------------------------\n`;
             
+            // إضافة المنتجات
             {% for item in items %}
                 {% if item.total %}
                     msg += `📦 {{ item.name }} (الكمية: {{ item.qty }}) = {{ item.total }}\n`;
@@ -175,6 +166,7 @@
             msg += `------------------------\n`;
             msg += `{{ store.footer }}`;
 
+            // تحويل النص لصيغة مناسبة لرابط الواتساب وفتحه
             let encodedMsg = encodeURIComponent(msg);
             window.open(`https://wa.me/?text=${encodedMsg}`, '_blank');
         }

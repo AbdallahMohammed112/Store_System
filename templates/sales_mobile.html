@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>كاشير الموبايل الاحترافي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; margin: 0; padding: 0; padding-bottom: 250px; color: #1e293b; }
+        
+        .pos-header { background: #1e293b; color: white; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .pos-header h1 { margin: 0; font-size: 16px; font-weight: 700; }
+        .menu-toggle { background: none; border: none; color: white; font-size: 20px; cursor: pointer; }
+
+        .pos-controls { background: white; padding: 12px; margin: 10px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .input-group { margin-bottom: 10px; }
+        .input-group label { display: block; font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 4px; }
+        .input-group input, .input-group select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; font-family: 'Cairo'; background: #fff; }
+        
+        .select2-container { width: 100% !important; }
+        .select2-selection { height: 44px !important; border: 1px solid #cbd5e1 !important; border-radius: 8px !important; display: flex !important; align-items: center; font-size: 14px; }
+        .select2-selection__arrow { height: 42px !important; }
+
+        .btn-action { background: #2563eb; color: white; border: none; width: 100%; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; font-family: 'Cairo'; margin-top: 5px; }
+        .btn-action:active { background: #1d4ed8; }
+
+        .cart-container { padding: 0 10px; }
+        .cart-card { background: white; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; border-right: 4px solid #10b981; box-shadow: 0 1px 3px rgba(0,0,0,0.02); display: flex; justify-content: space-between; align-items: center; }
+        .item-info { flex: 1; }
+        .item-name { font-weight: 700; font-size: 14px; color: #0f172a; margin-bottom: 2px; }
+        .item-sub { font-size: 12px; color: #64748b; }
+        
+        .item-actions { display: flex; align-items: center; gap: 8px; }
+        .qty-badge { background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 14px; }
+        .btn-del { background: #fee2e2; color: #ef4444; border: none; width: 32px; height: 32px; border-radius: 6px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+        .checkout-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 15px; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); z-index: 1000; }
+        .calc-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: #475569; }
+        .calc-row input, .calc-row select { padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; text-align: center; font-family: 'Cairo'; font-size: 13px; }
+        
+        .total-display { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 8px; margin-bottom: 8px; font-size: 16px; font-weight: bold; }
+        .total-price { color: #10b981; font-size: 20px; font-weight: 900; }
+
+        .btn-group { display: flex; gap: 6px; }
+        .btn-pay { background: #0f172a; color: white; flex: 2; padding: 12px; border: none; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; font-family: 'Cairo'; }
+        .btn-wa { background: #16a34a; color: white; flex: 1.5; padding: 12px; border: none; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer; font-family: 'Cairo'; }
+        .btn-reset { background: #f1f5f9; color: #ef4444; border: none; width: 40px; border-radius: 8px; font-size: 16px; cursor: pointer; }
+
+        .empty-msg { text-align: center; color: #94a3b8; padding: 30px; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+    <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+    {% include 'sidebar.html' %}
+
+    <header class="pos-header">
+        <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+        <h1>نقطة البيع (موبايل)</h1>
+        <a href="/dashboard" style="color:white; text-decoration:none; font-size:18px;">⌂</a>
+    </header>
+
+    <div class="pos-controls">
+        <div style="display: flex; gap: 8px;">
+            <div class="input-group" style="flex: 2; margin-bottom: 5px;">
+                <label>العميل</label>
+                <input type="text" id="customer_name" placeholder="عميل نقدي">
+            </div>
+            <div class="input-group" style="flex: 1.5; margin-bottom: 5px;">
+                <label>واتساب</label>
+                <input type="tel" id="customer_phone" placeholder="01xxxxxxxxx">
+            </div>
+        </div>
+
+        <div class="input-group" style="margin-top: 6px;">
+            <label>بحث أو إضافة منتج</label>
+            <select id="product_search" class="searchable-select">
+                <option value="">-- ابحث عن منتج أو صنف حر --</option>
+                {% for p in products %}
+                    <option value="{{ p[1] }}" data-id="{{ p[0] }}" data-price="{{ p[3] }}" data-stock="{{ p[4] }}" data-partner="{{ p[5] if p|length > 5 and p[5] else 'بدون شريك' }}">{{ p[1] }} (متاح: {{ p[4] }})</option>
+                {% endfor %}
+            </select>
+            <span id="stock_indicator" style="font-size: 11px; color: #2563eb; font-weight: bold; margin-top: 3px; display: block;"></span>
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+            <div class="input-group" style="flex: 1;">
+                <label>الكمية</label>
+                <input type="number" id="current_qty" value="1" min="1">
+            </div>
+            <div class="input-group" style="flex: 1.5;">
+                <label>السعر</label>
+                <input type="number" id="current_price" step="0.01">
+            </div>
+        </div>
+
+        {% if session.get('view_cost') == 'all' %}
+        <div class="input-group" id="cost_price_group" style="display: none;">
+            <label style="color: #dc2626;">سعر الشراء (للأرباح)</label>
+            <input type="number" id="current_cost_price" step="0.01" placeholder="تكلفة القطعة">
+        </div>
+        {% else %}
+        <input type="hidden" id="current_cost_price" value="0">
+        {% endif %}
+
+        <input type="hidden" id="current_id">
+        <input type="hidden" id="current_stock" value="0">
+        <input type="hidden" id="item_partner" value="بدون شريك">
+
+        <button class="btn-action" onclick="addToCart()">إضافة للسلة ➕</button>
+    </div>
+
+    <div class="cart-container" id="cart_body">
+        <div class="empty-msg">السلة فارغة، اختر منتجاً للبدء</div>
+    </div>
+
+    <div class="checkout-bar">
+        <div class="calc-row">
+            <span>الخصم:</span>
+            <div style="display: flex; gap: 4px;">
+                <input type="number" id="discount_val" value="0" min="0" onkeyup="renderCart()" step="0.5" style="width: 75px;">
+                <select id="discount_type" onchange="renderCart()" style="width: 85px;">
+                    <option value="amount">مبلغ</option>
+                    <option value="percent">نسبة %</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="total-display">
+            <span>الصافي:</span>
+            <span class="total-price"><span id="screen_total_amount">0.00</span> <span style="font-size:12px;">EGP</span></span>
+        </div>
+
+        <div style="margin-bottom: 8px;">
+            <label style="font-size: 11px; color: #dc2626; font-weight: bold; display: flex; align-items: center; gap: 4px;">
+                <input type="checkbox" id="allow_negative"> السماح بالبيع برغم نفاد المخزن / صنف حر
+            </label>
+        </div>
+
+        <div class="btn-group">
+            {% if session.get('p_sales_a') %}
+                <button class="btn-pay" onclick="printReceipt()">🖨️ طباعة</button>
+                <button class="btn-wa" onclick="sendWhatsApp()">💬 واتساب</button>
+            {% else %}
+                <button class="btn-pay" style="background:#cbd5e1;" disabled>غير مصرح ❌</button>
+            {% endif %}
+            <button class="btn-reset" onclick="clearCart()">🗑️</button>
+        </div>
+    </div>
+
+    <div id="printable_receipt" style="display: none;"></div>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById("sideMenu").classList.toggle("active");
+            document.getElementById("menuOverlay").classList.toggle("active");
+        }
+
+        let cart = []; 
+        let currentSubtotal = 0;
+        let currentDiscount = 0;
+        let currentNetTotal = 0;
+
+        $(document).ready(function() {
+            $('.searchable-select').select2({
+                tags: true, 
+                placeholder: "اختر منتج أو اكتب صنف حر...",
+                allowClear: true
+            });
+
+            $('#product_search').on('change', function() {
+                let selectElem = document.getElementById("product_search");
+                let selectedOption = selectElem.options[selectElem.selectedIndex];
+                let costGroup = document.getElementById("cost_price_group");
+                
+                if (selectedOption && selectedOption.hasAttribute("data-price")) {
+                    document.getElementById("current_price").value = selectedOption.getAttribute("data-price");
+                    document.getElementById("current_id").value = selectedOption.getAttribute("data-id");
+                    document.getElementById("current_stock").value = selectedOption.getAttribute("data-stock");
+                    document.getElementById("item_partner").value = selectedOption.getAttribute("data-partner") || "بدون شريك";
+                    
+                    let stock = selectedOption.getAttribute("data-stock");
+                    document.getElementById("stock_indicator").innerText = `📦 المخزون المتاح: ${stock}`;
+                    if (costGroup) costGroup.style.display = "none";
+                } 
+                else if (selectElem.value !== "") {
+                    document.getElementById("current_price").value = "";
+                    document.getElementById("current_id").value = "";
+                    document.getElementById("current_stock").value = "0";
+                    document.getElementById("item_partner").value = "بدون شريك";
+                    document.getElementById("stock_indicator").innerText = "⚠️ صنف حر (غير مسجل بالمخزن)";
+                    if (costGroup) costGroup.style.display = "block";
+                } 
+                else {
+                    document.getElementById("current_price").value = "";
+                    document.getElementById("current_id").value = "";
+                    document.getElementById("current_stock").value = "0";
+                    document.getElementById("stock_indicator").innerText = "";
+                    if (costGroup) costGroup.style.display = "none";
+                }
+            });
+        });
+
+        function addToCart() {
+            let name = document.getElementById("product_search").value;
+            let id = document.getElementById("current_id").value;
+            let price = parseFloat(document.getElementById("current_price").value);
+            let qty = parseInt(document.getElementById("current_qty").value) || 1;
+            let stock = parseFloat(document.getElementById("current_stock").value) || 0;
+            let partner = document.getElementById("item_partner").value;
+            let allowNegative = document.getElementById("allow_negative").checked;
+            
+            let costPriceElem = document.getElementById("current_cost_price");
+            let costPrice = costPriceElem ? parseFloat(costPriceElem.value) || 0 : 0;
+            
+            if (!name || isNaN(price)) { 
+                alert("يرجى اختيار منتج وتحديد السعر!"); 
+                return; 
+            }
+
+            if (id && !allowNegative) {
+                let existingItemCheck = cart.find(i => i.id == id);
+                let totalQtyRequested = qty + (existingItemCheck ? existingItemCheck.qty : 0);
+
+                if (totalQtyRequested > stock) {
+                    alert(`عذراً! الكمية المطلوبة (${totalQtyRequested}) أكبر من المخزون المتاح (${stock}).`);
+                    return;
+                }
+            }
+
+            let existingItem = cart.find(i => id ? (i.id == id) : (i.name === name));
+            if (existingItem) {
+                existingItem.qty += qty;
+                existingItem.price = price;
+            } else {
+                cart.push({ 
+                    id: id ? parseInt(id) : null, 
+                    name: name, 
+                    price: price, 
+                    cost_price: costPrice, 
+                    qty: qty, 
+                    partner: partner 
+                });
+            }
+            
+            $('#product_search').val(null).trigger('change');
+            document.getElementById("current_price").value = "";
+            document.getElementById("current_id").value = "";
+            document.getElementById("current_qty").value = 1;
+            document.getElementById("current_stock").value = "0";
+            document.getElementById("stock_indicator").innerText = "";
+            if (document.getElementById("current_cost_price")) document.getElementById("current_cost_price").value = "";
+            if (document.getElementById("cost_price_group")) document.getElementById("cost_price_group").style.display = "none";
+            
+            renderCart();
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            renderCart();
+        }
+
+        function clearCart() {
+            if(confirm("هل تريد تفريغ السلة؟")) {
+                cart = [];
+                document.getElementById("customer_name").value = "";
+                document.getElementById("customer_phone").value = "";
+                document.getElementById("discount_val").value = "0";
+                $('#product_search').val(null).trigger('change');
+                renderCart();
+            }
+        }
+
+        function renderCart() {
+            let cartBody = document.getElementById("cart_body");
+            currentSubtotal = 0;
+            
+            if (cart.length === 0) {
+                cartBody.innerHTML = `<div class="empty-msg">السلة فارغة، اختر منتجاً للبدء</div>`;
+                currentNetTotal = 0;
+                document.getElementById("screen_total_amount").innerText = "0.00";
+                return;
+            }
+
+            cartBody.innerHTML = "";
+            
+            cart.forEach((item, index) => {
+                let itemTotal = item.price * item.qty;
+                currentSubtotal += itemTotal;
+                
+                cartBody.innerHTML += `
+                    <div class="cart-card">
+                        <div class="item-info">
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-sub">${item.price} ج.م × ${item.qty} = <b>${itemTotal.toFixed(2)}</b> (${item.partner})</div>
+                        </div>
+                        <div class="item-actions">
+                            <span class="qty-badge">${item.qty}</span>
+                            <button class="btn-del" onclick="removeFromCart(${index})">✖</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            let discountInput = parseFloat(document.getElementById("discount_val").value) || 0;
+            let discountType = document.getElementById("discount_type").value;
+            currentDiscount = 0;
+
+            if (discountInput > 0 && currentSubtotal > 0) {
+                if (discountType === "percent") {
+                    currentDiscount = currentSubtotal * (discountInput / 100);
+                } else {
+                    currentDiscount = discountInput;
+                }
+            }
+
+            if (currentDiscount > currentSubtotal) currentDiscount = currentSubtotal;
+            currentNetTotal = Math.max(0, currentSubtotal - currentDiscount);
+
+            document.getElementById("screen_total_amount").innerText = currentNetTotal.toFixed(2);
+        }
+
+        function printReceipt() {
+            if (cart.length === 0) { alert("الفاتورة فارغة!"); return; }
+
+            let payload = {
+                customer_name: document.getElementById("customer_name").value || "عميل نقدي",
+                allow_negative: document.getElementById("allow_negative").checked,
+                items: cart,
+                subtotal: currentSubtotal,
+                discount: currentDiscount,
+                net_total: currentNetTotal
+            };
+
+            fetch('/print_receipt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                if (!response.ok) return response.text().then(err => { throw new Error(err); });
+                return response.text();
+            })
+            .then(html => {
+                let printWindow = window.open('', '_blank');
+                printWindow.document.write(html);
+                printWindow.document.close();
+                clearCart();
+            })
+            .catch(err => alert(err.message || "حدث خطأ أثناء الطباعة!"));
+        }
+
+        function sendWhatsApp() {
+            let phone = document.getElementById("customer_phone").value;
+            if (!phone) { alert("أدخل رقم هاتف العميل!"); return; }
+            if (cart.length === 0) { alert("الفاتورة فارغة!"); return; }
+            
+            let customerName = document.getElementById("customer_name").value || "عميل نقدي";
+            let msg = `🛒 *فاتورة مبيعات*\n👤 ${customerName}\n--------------------\n`;
+            
+            cart.forEach(item => {
+                msg += `▪️ ${item.name} (${item.qty} × ${item.price}) = *${(item.price * item.qty).toFixed(2)}*\n`;
+            });
+            
+            if (currentDiscount > 0) msg += `📉 الخصم: ${currentDiscount.toFixed(2)}\n`;
+            msg += `--------------------\n💰 *الإجمالي الصافي: ${currentNetTotal.toFixed(2)} EGP*`;
+
+            window.open(`https://wa.me/2${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+    </script>
+</body>
+</html>

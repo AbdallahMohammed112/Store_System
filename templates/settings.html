@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة تحكم ERP - الإعدادات</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
-    
-    <!-- مكتبة Cropper.js لقص الصور -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
     
     <style>
@@ -38,7 +36,6 @@
         .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 8px; font-family: 'Cairo'; font-size: 14px; box-sizing: border-box; }
         .form-group input[type="file"] { padding: 9px 12px; background: #f8f9fa; cursor: pointer; }
         
-        /* إعدادات معاينة الصورة */
         .logo-preview-container { text-align: center; margin-bottom: 15px; }
         .logo-preview-container img { max-height: 120px; border-radius: 8px; border: 2px dashed #bdc3c7; padding: 5px; background: #f9f9f9; display: none; margin: auto; }
         
@@ -74,7 +71,6 @@
         .modal-content { background-color: #fff; margin: 3% auto; padding: 30px; border-radius: 15px; max-width: 750px; position: relative; max-height: 90vh; overflow-y: auto; }
         .close-modal { position: absolute; left: 20px; top: 15px; font-size: 24px; cursor: pointer; color: #e74c3c; }
         
-        /* تنسيقات نافذة القص */
         .crop-container { max-height: 60vh; overflow: hidden; margin-bottom: 20px; background: #000; border-radius: 8px; }
         .crop-controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
     </style>
@@ -86,7 +82,6 @@
     <header class="top-navbar">
         <div class="nav-right">
             <button class="menu-btn" onclick="toggleMenu()">☰</button>
-            <!-- <h1> FlashCashier </h1> -->
         </div>
         <div style="font-size: 14px;">مرحباً، <strong>{{ session['username'] }}</strong></div>
     </header>
@@ -110,7 +105,6 @@
 
         <!-- 1. الحسابات والصلاحيات -->
         <div id="tab-users" class="tab-content active">
-            <!-- نفس الكود القديم الخاص بالموظفين (لا تغيير) -->
             {% if session['role'] != 'owner' %}
             <div style="background: #e8f4f8; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px dashed #b6d4fe; color: #055160;">
                 <strong>حصة الحسابات الفرعية:</strong> المسموح ({{ my_max_users }}) | المستخدم ({{ current_sub_users }})
@@ -183,19 +177,13 @@
                 <h2 class="section-title">بيانات الفاتورة والشعار</h2>
                 
                 <form action="/update_invoice_settings" method="POST" enctype="multipart/form-data">
-                    <!-- منطقة معاينة ورفع اللوجو -->
-                    <!-- منطقة معاينة ورفع اللوجو -->
                     <div class="logo-preview-container">
                         <label style="color: #34495e; font-weight: bold; margin-bottom: 10px; display: block;">الشعار الحالي للمتجر</label>
-                        
                         <img id="logo-preview" 
                              src="{% if settings.logo %}{{ url_for('static', filename='uploads/' + settings.logo) }}{% endif %}" 
                              style="display: {% if settings.logo %}inline-block{% else %}none{% endif %};">
-                             
-                        <!-- زرار الحذف يظهر فقط لو في لوجو -->
                         {% if settings.logo %}
                         <div style="margin-top: 10px;">
-                            <!-- لاحظ إننا عملنا فورم تانية صغيرة عشان زرار الحذف يروح للمسار الصح بدون ما يبوظ الإعدادات -->
                             <button type="submit" form="deleteLogoForm" class="btn btn-danger" style="padding: 6px 15px; font-size: 12px; border-radius: 4px;">🗑️ حذف الشعار</button>
                         </div>
                         {% endif %}
@@ -235,6 +223,22 @@
                 </form>
             </div>
 
+            <!-- إعدادات الواجهة (الموبايل والديسكتوب) هنا في تبويبة الأمان -->
+            <div class="card" style="border-top-color: #3498db;">
+                <h2 class="section-title" style="color: #2980b9; border-color: #3498db;">📱 إعدادات واجهة الكاشير</h2>
+                <form action="/toggle_pos_view" method="POST" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+                    <div class="form-group" style="flex: 2; margin: 0;">
+                        <label>اختر الواجهة المفضلة لك لشاشة البيع:</label>
+                        <select name="pos_view">
+                            <option value="desktop" {% if session.get('pos_view') == 'desktop' %}selected{% endif %}>💻 واجهة الكمبيوتر (الديسكتوب الأصلية)</option>
+                            <option value="mobile" {% if session.get('pos_view') == 'mobile' %}selected{% endif %}>📱 واجهة الموبايل (سريعة ومبسطة)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="flex: 1; min-width: 150px;">حفظ الواجهة 💾</button>
+                </form>
+                <p style="font-size: 12px; color: #7f8c8d; margin-top: 10px;">* هذا الإعداد يطبق على حسابك الحالي فقط، يمكن لكل موظف اختيار واجهته الخاصة.</p>
+            </div>
+
             {% if session['role'] in ['owner', 'admin'] %}
             <div class="card" style="border-top-color: #e74c3c;">
                 <h2 class="section-title" style="color: #c0392b; border-color: #e74c3c;">إدارة البيانات {{ '(للمالك فقط)' if session['role'] == 'owner' else '(مخصصة لمتجرك فقط)' }}</h2>
@@ -272,7 +276,6 @@
 
     </div>
 
-    <!-- نافذة قص الصورة (Cropper Modal) -->
     <div id="cropModal" class="modal" style="z-index: 5000;">
         <div class="modal-content" style="max-width: 600px;">
             <span class="close-modal" onclick="closeCropModal()">&times;</span>
@@ -295,13 +298,11 @@
         </div>
     </div>
 
-    <!-- النافذة المنبثقة: إضافة وتعديل المستخدمين (باقي الكود كما هو) -->
     <div id="userModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeUserModal()">&times;</span>
             <h2 class="section-title" id="modalTitle" style="border: none;">إضافة حساب جديد</h2>
             <form id="userForm" action="/add_user" method="POST">
-                <!-- محتوى فورم الموظفين كما هو -->
                 <div style="display: flex; gap: 15px; flex-wrap: wrap;">
                     <div class="form-group" style="flex: 1; min-width: 150px;"><label>اسم الدخول</label><input type="text" name="username" id="m_user" required></div>
                     <div class="form-group" style="flex: 1; min-width: 150px;"><label id="lbl_pass">كلمة المرور</label><input type="text" name="password" id="m_pass" placeholder="أدخل الرقم السري"><input type="text" name="reset_password" id="m_reset" placeholder="باسورد جديد (اختياري)" style="display: none; border-color: #e74c3c; background: #fffcfc;"></div>
@@ -341,11 +342,9 @@
         </div>
     </div>
 
-    <!-- مكتبة الجافاسكريبت لـ Cropper -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
     <script>
-        // سكريبت قص وتدوير الصور
         let cropper;
         let cropModal = document.getElementById('cropModal');
         let imageToCrop = document.getElementById('image-to-crop');
@@ -363,7 +362,7 @@
                     if (cropper) { cropper.destroy(); }
                     
                     cropper = new Cropper(imageToCrop, {
-                        aspectRatio: NaN, // يتيح القص الحر بدون تقييد بأبعاد معينة
+                        aspectRatio: NaN,
                         viewMode: 1,
                         autoCropArea: 1,
                     });
@@ -375,23 +374,20 @@
         function closeCropModal() {
             cropModal.style.display = 'none';
             if (cropper) { cropper.destroy(); cropper = null; }
-            logoInput.value = ''; // تفريغ حقل الاختيار لو العميل ألغى
+            logoInput.value = '';
         }
 
         function applyCrop() {
             if (!cropper) return;
             
-            // استخراج الصورة المقصوصة
             let canvas = cropper.getCroppedCanvas({
                 maxWidth: 600,
                 maxHeight: 600
             });
             
-            // عرض المعاينة
             logoPreview.src = canvas.toDataURL('image/png');
             logoPreview.style.display = 'inline-block';
             
-            // تحويل الـ Canvas لملف وحقنه في الـ Input (عشان يتبعت للسيرفر كملف عادي)
             canvas.toBlob(function(blob) {
                 let file = new File([blob], "cropped_logo.png", { type: "image/png" });
                 let dt = new DataTransfer();
@@ -404,7 +400,6 @@
             cropper = null;
         }
 
-        // سكريبتات عامة (القائمة الجانبية والموظفين)
         function toggleMenu() { document.getElementById("sideMenu").classList.toggle("active"); }
         
         function openTab(evt, tabName) {
@@ -495,7 +490,6 @@
             }
         }
     </script>
-    <!-- فورم مخفية لحذف اللوجو -->
     <form id="deleteLogoForm" action="/remove_logo" method="POST" onsubmit="return confirm('هل أنت متأكد من حذف شعار المتجر؟');"></form>
 </body>
 </html>

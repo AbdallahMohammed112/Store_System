@@ -169,6 +169,15 @@
                     <div class="perm-item"><input type="checkbox" name="p_rep_v" id="p_rep_v" value="1"><label for="p_rep_v">التقارير</label></div>
                     <div class="perm-item"><input type="checkbox" name="p_part_v" id="p_part_v" value="1"><label for="p_part_v">نظام الشركاء</label></div>
                 </div>
+
+                <!-- الجزء الجديد الخاص بميزات الباقة الإضافية -->
+                <h4 class="section-title" style="color: #2980b9;">⭐ ميزات الباقة الإضافية</h4>
+                <div class="perm-grid" style="border-color: #3498db; background: #e8f4f8;">
+                    <div class="perm-item">
+                        <input type="checkbox" name="allow_mobile_pos" id="allow_mobile_pos" value="1">
+                        <label for="allow_mobile_pos" style="color: #2980b9; font-weight: bold;">📱 تفعيل كاشير الموبايل السريع</label>
+                    </div>
+                </div>
                 
                 <button type="submit" class="btn" style="width: 100%; background-color: #27ae60; font-size: 14px; padding: 10px; margin-top: 20px;">حفظ التعديلات 💾</button>
             </form>
@@ -222,6 +231,9 @@
             setCheck('p_purch_v', user.p_purch_v); setCheck('p_purch_a', user.p_purch_a);
             setCheck('p_exp_v', user.p_exp_v);     setCheck('p_exp_a', user.p_exp_a);
             setCheck('p_rep_v', user.p_rep_v);     setCheck('p_part_v', user.p_part_v);
+            
+            // قراءة حالة الميزة الجديدة من قاعدة البيانات (كاشير الموبايل)
+            setCheck('allow_mobile_pos', user.allow_mobile_pos);
 
             document.getElementById('adminEditModal').style.display = 'block';
         }

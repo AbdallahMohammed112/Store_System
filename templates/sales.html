@@ -308,9 +308,10 @@
             let partnerSelect = document.getElementById("item_partner");
             let selectedOption = selectElem.options[selectElem.selectedIndex];
             
-            let costGroup = document.getElementById("cost_price_group"); 
+            let costGroup = document.getElementById("cost_price_group"); // فحص آمن عشان الصلاحيات
             
             if (selectedOption && selectedOption.hasAttribute("data-price")) {
+                // منتج مسجل بالمخزن
                 document.getElementById("current_price").value = selectedOption.getAttribute("data-price");
                 document.getElementById("current_id").value = selectedOption.getAttribute("data-id");
                 
@@ -322,12 +323,14 @@
                 partnerSelect.value = partner;
                 partnerSelect.disabled = true; 
                 
+                // إخفاء حقل سعر الشراء
                 if (costGroup) costGroup.style.display = "none";
                 let cpInput = document.getElementById("current_cost_price");
                 if(cpInput && cpInput.type !== "hidden") cpInput.value = "";
 
             } 
             else if (selectElem.value !== "") {
+                // منتج حر (غير مسجل)
                 document.getElementById("current_price").value = "";
                 document.getElementById("current_id").value = "";
                 document.getElementById("stock_indicator").innerText = "⚠️ صنف حر (غير مسجل). يرجى إدخال السعر والشريك وتكلفة الشراء.";
@@ -335,9 +338,11 @@
                 partnerSelect.value = "بدون شريك";
                 partnerSelect.disabled = false;
                 
+                // إظهار حقل سعر الشراء لحساب الأرباح لمن له الصلاحية
                 if (costGroup) costGroup.style.display = "flex";
             } 
             else {
+                // الخانة فارغة
                 document.getElementById("current_price").value = "";
                 document.getElementById("current_id").value = "";
                 document.getElementById("stock_indicator").innerText = "";
@@ -364,6 +369,7 @@
             let partner = document.getElementById("item_partner").value;
             let allowNegative = document.getElementById("allow_negative").checked;
             
+            // تحقق من سعر الشراء لو المنتج حر
             let costPriceElem = document.getElementById("current_cost_price");
             let costPrice = costPriceElem ? parseFloat(costPriceElem.value) : 0;
             
@@ -383,7 +389,7 @@
                 id: id ? parseInt(id) : null, 
                 name: name, 
                 price: price, 
-                cost_price: costPrice,
+                cost_price: costPrice, // إرسال سعر الشراء مع الفاتورة
                 qty: qty, 
                 partner: partner 
             });
@@ -488,9 +494,6 @@
             }
         }
 
-        // ==========================================
-        // الدالة دي هي اللي اتعدلت للطباعة المخفية
-        // ==========================================
         function printReceipt() {
             if (cart.length === 0) { alert("الفاتورة فارغة!"); return; }
 
@@ -518,26 +521,10 @@
                 return response.text();
             })
             .then(html => {
-                // إنشاء شاشة وهمية (Iframe) للطباعة في الخلفية
-                let printFrame = document.createElement('iframe');
-                printFrame.style.display = 'none';
-                document.body.appendChild(printFrame);
+                let printWindow = window.open('', '_blank');
+                printWindow.document.write(html);
+                printWindow.document.close();
                 
-                let frameDoc = printFrame.contentWindow.document;
-                frameDoc.open();
-                frameDoc.write(html);
-                frameDoc.close();
-
-                printFrame.onload = function() {
-                    printFrame.contentWindow.focus();
-                    printFrame.contentWindow.print();
-                    
-                    setTimeout(() => {
-                        document.body.removeChild(printFrame);
-                    }, 5000);
-                };
-                
-                // تفريغ سلة المشتريات فورا للعميل الجديد
                 cart = [];
                 document.getElementById("customer_name").value = "";
                 document.getElementById("customer_phone").value = "";
